@@ -1,43 +1,141 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Mi aplicación ASP.NET</title>
-    @Styles.Render("~/Content/css")
-    @Scripts.Render("~/bundles/modernizr")
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+    <!-- DataTables -->
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Site.css (estilos propios, siempre al final para que puedan sobreescribir) -->
+    <link href="~/Content/Site.css" rel="stylesheet" />
 </head>
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink("Nombre de la aplicación", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Inicio", "Index", "Home")</li>
-                    <li>@Html.ActionLink("Acerca de", "About", "Home")</li>
-                    <li>@Html.ActionLink("Contacto", "Contact", "Home")</li>
-                </ul>
+<body class="layout-admin">
+    <!-- ═══════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════ -->
+    <div id="sidebarOverlay"></div>
+    <nav id="sidebar" style="background-color: #9E652E">
+
+        <div class="sidebar-brand" style="background-color: #3F281A">
+            <img src="~/Content/Assets/logo_ecolsur.png" alt="Logo" style="width: 100px; height: 30px; margin-bottom: 8px;" />
+        </div>
+
+        <ul class="nav flex-column mt-1">
+
+            <li><span class="nav-section">VENTAS</span></li>
+            <li class="nav-item">
+                <a href="@Url.Action("Index", "Home")"
+                   class="nav-link @(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="@Url.Action("Certificados", "Home")"
+                   class="nav-link @(ViewBag.ActiveMenu == "Certificados" ? "active" : "")">
+                    <i class="fas fa-award"></i> Cotizaciones
+                </a>
+            </li>
+        </ul>
+
+        <!-- Usuario en sidebar -->
+        <div class="sidebar-user">
+            <div class="d-flex align-items-center gap-2">
+                <a href="@Url.Action("Perfil", "Usuarios")" class="text-decoration-none text-white d-flex align-items-center gap-2">
+                    <div class="user-avatar">
+                        P
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="user-name text-truncate">Prueba</div>
+                        @using (Html.BeginForm("Index", "Acceso",
+                    FormMethod.Post, new { style = "margin:0" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-logout">
+                                <i class="fas fa-sign-out-alt me-1"></i>Cerrar sesión
+                            </button>
+                        }
+                    </div>
+                </a>
             </div>
         </div>
-    </div>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Mi aplicación ASP.NET</p>
-        </footer>
+    </nav>
+
+    <!-- ═══════════════════════════════
+         MAIN CONTENT
+    ═══════════════════════════════ -->
+    <div id="main-content">
+
+        <div class="topbar">
+            <button id="btnToggleSidebar" class="d-md-none me-3"
+                    style="background:transparent; border:none; color:#fff; font-size:1.3rem;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h5 class="page-title">
+                <i class="fas fa-circle me-2"
+                   style="font-size:0.5rem;color:#4e9af1;vertical-align:middle;"></i>
+                @ViewBag.Title
+            </h5>
+            <div style="color:#fff; font-size:0.82rem;">
+                <i class="fas fa-calendar-alt me-1"></i>
+                @DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy",
+                     new System.Globalization.CultureInfo("es-MX"))
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="portal-header">
+                <h4 class="portal-title">Portal de Certificación Ecolsur</h4>
+            </div>
+            @RenderBody()
+        </div>
     </div>
 
+
+    <!-- ═══════════════════════════════
+         SCRIPTS
+    ═══════════════════════════════ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var btn = document.getElementById('btnToggleSidebar');
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebarOverlay');
+
+            btn.addEventListener('click', function () {
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.add('active');
+            });
+
+            overlay.addEventListener('click', function () {
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.remove('active');
+            });
+        });
+    </script>
+
     @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
+
+    <!-- Bootstrap 5 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

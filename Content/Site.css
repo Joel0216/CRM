@@ -1,24 +1,248 @@
 ﻿body {
-    padding-top: 50px;
-    padding-bottom: 20px;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
-/* Set padding to keep content from hitting the edges */
-.body-content {
-    padding-left: 15px;
-    padding-right: 15px;
+    body.layout-encuesta {
+        display: block;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+
+    body.layout-admin {
+        display: flex;
+    }
+/* ══════════════════════════════
+   SIDEBAR
+══════════════════════════════ */
+.layout-admin #sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: #9E652E;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s;
+    overflow-y: auto;
 }
 
-/* Override the default bootstrap behavior where horizontal description lists 
-   will truncate terms that are too long to fit in the left column 
-*/
-.dl-horizontal dt {
-    white-space: normal;
+    .layout-admin #sidebar .sidebar-brand {
+        padding: 18px 15px;
+        color: #fff;
+        font-size: 0.95rem;
+        font-weight: 700;
+        border-bottom: 1px solid #2e4060;
+        letter-spacing: 0.3px;
+    }
+
+    .layout-admin #sidebar .nav-link {
+        color: #fff;
+        padding: 9px 20px;
+        font-size: 0.875rem;
+        border-left: 3px solid transparent;
+        transition: all 0.9s;
+    }
+
+        .layout-admin #sidebar .nav-link:hover,
+        .layout-admin #sidebar .nav-link.active {
+            background-color: rgba(0, 0, 0, 0.2) !important;
+            color: white !important;
+            border-radius: 6px;
+        }
+
+        .layout-admin #sidebar .nav-link i {
+            width: 18px;
+            margin-right: 8px;
+            font-size: 0.85rem;
+        }
+
+    .layout-admin #sidebar .nav-section {
+        color: #fff;
+        font-weight: bold;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        padding: 14px 20px 4px;
+    }
+
+/* ══════════════════════════════
+   MAIN CONTENT
+══════════════════════════════ */
+.layout-admin #main-content {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
-textarea {
-    max-width: 280px;
+/* ══════════════════════════════
+   CONTENT AREA
+══════════════════════════════ */
+.content-area {
+    padding: 25px;
+    flex: 1;
+    background: #FAF6F1;
+    min-height: calc(100vh - 60px);
+}
+
+/* ══════════════════════════════
+   TOPBAR — _Layout
+══════════════════════════════ */
+.layout-admin .topbar {
+    height: 60px;
+    background: #3F281A;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+    .layout-admin .topbar .page-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        margin: 0;
+    }
+
+/* LOGO */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+}
+
+/* ══════════════════════════════
+   SIDEBAR USER
+══════════════════════════════ */
+.layout-admin .sidebar-user {
+    padding: 14px 15px;
+    border-top: 1px solid #3F281A;
+    margin-top: auto;
+    color: white;
+}
+
+    .layout-admin .sidebar-user .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #4e9af1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .layout-admin .sidebar-user .user-name {
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: bold;
+        line-height: 1.2;
+    }
+
+    .layout-admin .sidebar-user .btn-logout {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 0.72rem;
+        padding: 0;
+        cursor: pointer;
+    }
+
+        .layout-admin .sidebar-user .btn-logout:hover {
+            color: darkred;
+        }
+
+/* RESPONSIVO PARA MÓVIL */
+@media (max-width: 768px) {
+    .layout-admin #sidebar {
+        width: 0 !important;
+        overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1050;
+        transition: width 0.3s ease;
+    }
+
+        .layout-admin #sidebar.sidebar-open {
+            width: 250px !important;
+        }
+
+    .layout-admin #main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    #btnToggleSidebar {
+        display: block !important;
+    }
+
+    .content-area {
+        padding: 15px;
+    }
+
+    .portal-header {
+        display: none;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table th,
+    .table td {
+        font-size: 0.75rem !important;
+        padding: 6px 8px !important;
+        white-space: nowrap;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start !important;
+    }
+
+        .d-flex.justify-content-between .btn {
+            width: 100%;
+        }
+
+    .row > [class*="col-lg"],
+    .row > [class*="col-md"] {
+        width: 100% !important;
+    }
+}
+
+/* RESPONSIVO PARA TABLETS */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .table td .btn-action {
+        display: inline-flex;
+        padding: 3px 6px !important;
+        font-size: 0.75rem !important;
+        margin: 1px !important;
+    }
+
+    /* Celda de acciones no hace wrap */
+    .table td:last-child {
+        white-space: nowrap;
+        min-width: 100px;
+    }
 }
