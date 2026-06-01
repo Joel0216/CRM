@@ -1,0 +1,118 @@
+// ── MODO OFFLINE ──────────────────────────────────────────────────────────────
+// true = usa localStorage directamente (sin llamadas al servidor, sin errores)
+// false = intenta el servidor Express primero, luego localStorage como fallback
+const OFFLINE_MODE = true
+
+const KEY = 'crm_prospects'
+
+function genId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+// ── DATOS DEMO ────────────────────────────────────────────────────────────────
+const DEMO = [
+  { id: 'p1', nombre: 'Inmobiliaria Pedregal SA de CV', empresa: 'Inmobiliaria Pedregal', rfc: 'IPE210315AB3', direccion: 'Calle 60 #430, Col. Centro, Mérida', notas: 'Acceso por portón lateral. Contenedor 240L.', lat: 20.9674, lng: -89.6233, tipo: 'oficina', periodicidad: 'Mensual', estatus: 'Cotizado', adeudo: 0 },
+  { id: 'p2', nombre: 'Residencial Las Palmas S.C.', empresa: 'Condominios Las Palmas', rfc: 'RLP190801CD5', direccion: 'Av. Itzáes #200, Mérida', notas: 'Condominio 48 unidades. Recolección martes y viernes.', lat: 20.9812, lng: -89.638, tipo: 'condominio', periodicidad: 'Mensual', estatus: 'En seguimiento', adeudo: 1200 },
+  { id: 'p3', nombre: 'Restaurante La Chaya Maya', empresa: 'La Chaya Maya S.A.', rfc: 'LCM150220EF7', direccion: 'Calle 62 #481, Col. Centro, Mérida', notas: 'Residuos orgánicos alta proporción.', lat: 20.9696, lng: -89.6279, tipo: 'local', periodicidad: 'Mensual', estatus: 'Nuevo', adeudo: 0 },
+  { id: 'p4', nombre: 'Familia Rodríguez Alpuche', empresa: '', rfc: 'ROAG801014HZ2', direccion: 'Calle 47 #525, Col. Pensiones, Mérida', notas: 'Casa habitación. Horario especial mañana.', lat: 20.9741, lng: -89.6058, tipo: 'casa', periodicidad: 'Mensual', estatus: 'Adeudo', adeudo: 4500 },
+  { id: 'p5', nombre: 'Centro Médico Yucalpetén', empresa: 'CMY Salud SC', rfc: 'CMY200505GH1', direccion: 'Av. Itzáes #540, Mérida', notas: 'Residuos médicos. Requiere manifiesto RME.', lat: 20.9755, lng: -89.6401, tipo: 'oficina', periodicidad: 'Mensual', estatus: 'Cotizado', adeudo: 0 },
+  { id: 'p6', nombre: 'Plaza Comercial Galerías', empresa: 'Galerías Mérida SA', rfc: 'GME180312JK9', direccion: 'Prolongación Montejo, Mérida', notas: 'Múltiples locales. Recolección diaria L-V.', lat: 20.9993, lng: -89.6199, tipo: 'local', periodicidad: 'Mensual', estatus: 'Inactivo', adeudo: 8900 },
+]
+
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY)
+    if (!raw) { localStorage.setItem(KEY, JSON.stringify(DEMO)); return DEMO }
+    return JSON.parse(raw)
+  } catch { return DEMO }
+}
+
+function save(list) {
+  try { localStorage.setItem(KEY, JSON.stringify(list)) } catch {}
+}
+
+// ── API REMOTA (solo si OFFLINE_MODE = false) ─────────────────────────────────
+async function tryApi(method, url, body) {
+  if (OFFLINE_MODE) return { ok: false }
+  try {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } }
+    if (body) opts.body = JSON.stringify(body)
+    const res = await fetch(url, opts)
+    if (!res.ok) throw new Error(res.status)
+    return { ok: true, data: await res.json() }
+  } catch { return { ok: false } }
+}
+
+// ── PROSPECTS ─────────────────────────────────────────────────────────────────
+export async function getProspects(search = '', estatus = '') {
+  const api = await tryApi('GET', `/api/prospects?search=${encodeURIComponent(search)}&estatus=${encodeURIComponent(estatus)}`)
+  if (api.ok) return api.data
+  let list = load()
+  if (search) {
+    const q = search.toLowerCase()
+    list = list.filter(p =>
+      p.nombre.toLowerCase().includes(q) ||
+      (p.empresa || '').toLowerCase().includes(q) ||
+      (p.rfc || '').toLowerCase().includes(q) ||
+      (p.direccion || '').toLowerCase().includes(q)
+    )
+  }
+  if (estatus && estatus !== 'Todos') list = list.filter(p => p.estatus === estatus)
+  return list
+}
+
+export async function createProspect(data) {
+  const api = await tryApi('POST', '/api/prospects', data)
+  if (api.ok) return api.data
+  const list = load()
+  const p = { id: genId(), adeudo: 0, ...data }
+  save([...list, p])
+  return p
+}
+
+export async function updateProspect(id, data) {
+  const api = await tryApi('PUT', `/api/prospects/${id}`, data)
+  if (api.ok) return api.data
+  const list = load()
+  const idx = list.findIndex(x => x.id === id)
+  if (idx !== -1) { list[idx] = { ...list[idx], ...data }; save(list) }
+  return list[idx]
+}
+
+export async function deleteProspect(id) {
+  await tryApi('DELETE', `/api/prospects/${id}`)
+  save(load().filter(x => x.id !== id))
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+export async function getDashboard() {
+  const api = await tryApi('GET', '/api/dashboard')
+  if (api.ok) return api.data
+  const all = load()
+  return {
+    total: all.length,
+    nuevos: all.filter(p => p.estatus === 'Nuevo').length,
+    seguimiento: all.filter(p => p.estatus === 'En seguimiento').length,
+    cotizados: all.filter(p => p.estatus === 'Cotizado').length,
+    adeudo: all.filter(p => p.estatus === 'Adeudo').length,
+    inactivos: all.filter(p => p.estatus === 'Inactivo').length,
+    ingresoProyectado: all.filter(p => p.estatus === 'Cotizado').length * 2850,
+  }
+}
+
+// ── COTIZADOR (100% local, sin servidor) ─────────────────────────────────────
+export function calcularCotizacion(items, periodicidad, descuentoPct) {
+  const periodMap = { Mensual: 1, Trimestral: 3, Semestral: 6, Anual: 12 }
+  const discountMap = { Mensual: 0, Trimestral: 3, Semestral: 7, Anual: 12 }
+  const factor = periodMap[periodicidad] || 1
+  const autoDisc = discountMap[periodicidad] || 0
+  const totalDisc = Math.min((descuentoPct || 0) + autoDisc, 40)
+  let subtotalMensual = 0
+  for (const it of items) subtotalMensual += (parseFloat(it.precio) || 0) * (parseFloat(it.cantidad) || 1)
+  const subtotal = subtotalMensual * factor
+  const descuento = subtotal * (totalDisc / 100)
+  const base = subtotal - descuento
+  const iva = base * 0.16
+  return { subtotalMensual, subtotal, descuento, iva, total: base + iva, factor, totalDisc, autoDisc }
+}

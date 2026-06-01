@@ -1,0 +1,525 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|c:\\users\\joel pool\\downloads\\crmciclo\\content\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|solutionrelative:content\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\main.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\main.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\App.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\App.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\DOCUMENTATION_FULL.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:DOCUMENTATION_FULL.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Quote.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\pages\\Quote.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Prospects.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\pages\\Prospects.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Dashboard.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\pages\\Dashboard.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Login.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\src\\pages\\Login.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\client\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\server.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:modern-crm\\README.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\CotizadorViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\CotizadorViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\PanelAdViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\PanelAdViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\sql\\sp_example_prospectos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:sql\\sp_example_prospectos.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ContratosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\ContratosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Prospectos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\Prospectos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ManifiestosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\ManifiestosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\DirectorioViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\DirectorioViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Directorio\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\Directorio\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Manifiestos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\Manifiestos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Contratos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\Contratos\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Cotizador\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\Cotizador\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\README_DEV.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README_DEV.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ProspectosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\ProspectosViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\AccesoAdministradorViewController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\AccesoAdministrador\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Views\\AccesoAdministrador\\Index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Controllers\\AccesoAdministradorController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Shared\\_Layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|solutionrelative:Views\\Shared\\_Layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{05B53176-D155-46C7-A345-2FA587450C0B}|CRMCiclo.csproj|solutionrelative:Web.config||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Site.css",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Content\\Site.css",
+              "RelativeDocumentMoniker": "Content\\Site.css",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Content\\Site.css",
+              "RelativeToolTip": "Content\\Site.css",
+              "ViewState": "AgIAAPcAAAAAAAAAAAAAAPcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2026-05-25T15:16:14.613Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Quote.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Quote.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\pages\\Quote.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Quote.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\pages\\Quote.jsx",
+              "ViewState": "AgIAAIcAAAAAAAAAAIBJwE8BAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:59.913Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Prospects.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Prospects.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\pages\\Prospects.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Prospects.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\pages\\Prospects.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:49.954Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Dashboard.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Dashboard.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\pages\\Dashboard.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Dashboard.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\pages\\Dashboard.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:39.732Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Login.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Login.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\pages\\Login.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\pages\\Login.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\pages\\Login.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAGcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:33.692Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "App.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\App.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\App.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\App.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\App.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAI0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:22.173Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "main.jsx",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\main.jsx",
+              "RelativeDocumentMoniker": "modern-crm\\client\\src\\main.jsx",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\src\\main.jsx",
+              "RelativeToolTip": "modern-crm\\client\\src\\main.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2026-05-21T20:39:18.063Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "index.html",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\index.html",
+              "RelativeDocumentMoniker": "modern-crm\\client\\index.html",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\index.html",
+              "RelativeToolTip": "modern-crm\\client\\index.html",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2026-05-21T20:39:13.923Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\package.json",
+              "RelativeDocumentMoniker": "modern-crm\\client\\package.json",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\client\\package.json",
+              "RelativeToolTip": "modern-crm\\client\\package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-05-21T20:39:10.644Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "server.js",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\server.js",
+              "RelativeDocumentMoniker": "modern-crm\\server.js",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\server.js",
+              "RelativeToolTip": "modern-crm\\server.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAI0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-05-21T20:39:03.028Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\package.json",
+              "RelativeDocumentMoniker": "modern-crm\\package.json",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\package.json",
+              "RelativeToolTip": "modern-crm\\package.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-05-21T20:38:52.835Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "DOCUMENTATION_FULL.md",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\DOCUMENTATION_FULL.md",
+              "RelativeDocumentMoniker": "DOCUMENTATION_FULL.md",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\DOCUMENTATION_FULL.md",
+              "RelativeToolTip": "DOCUMENTATION_FULL.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-20T06:03:19.815Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "README.md",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\README.md",
+              "RelativeDocumentMoniker": "modern-crm\\README.md",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\modern-crm\\README.md",
+              "RelativeToolTip": "modern-crm\\README.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-21T20:40:08.377Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "CotizadorViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\CotizadorViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\CotizadorViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\CotizadorViewController.cs",
+              "RelativeToolTip": "Controllers\\CotizadorViewController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-20T05:35:23.629Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAADUAAAAAAAAAAEBlwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:35:04.845Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "PanelAdViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\PanelAdViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\PanelAdViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\PanelAdViewController.cs",
+              "RelativeToolTip": "Controllers\\PanelAdViewController.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-20T05:34:54.158Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "sp_example_prospectos.sql",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\sql\\sp_example_prospectos.sql",
+              "RelativeDocumentMoniker": "sql\\sp_example_prospectos.sql",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\sql\\sp_example_prospectos.sql",
+              "RelativeToolTip": "sql\\sp_example_prospectos.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2026-05-19T23:05:34.698Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "ContratosViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ContratosViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ContratosViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ContratosViewController.cs",
+              "RelativeToolTip": "Controllers\\ContratosViewController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-20T05:35:30.178Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Prospectos\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Prospectos\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Prospectos\\Index.cshtml",
+              "RelativeToolTip": "Views\\Prospectos\\Index.cshtml",
+              "ViewState": "AgIAAAEAAAAAAAAAAMBtwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:52:00.897Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "ManifiestosViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ManifiestosViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ManifiestosViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ManifiestosViewController.cs",
+              "RelativeToolTip": "Controllers\\ManifiestosViewController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-20T05:35:40.212Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "DirectorioViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\DirectorioViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\DirectorioViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\DirectorioViewController.cs",
+              "RelativeToolTip": "Controllers\\DirectorioViewController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-20T05:35:46.077Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Directorio\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Directorio\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Directorio\\Index.cshtml",
+              "RelativeToolTip": "Views\\Directorio\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:36:20.601Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Manifiestos\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Manifiestos\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Manifiestos\\Index.cshtml",
+              "RelativeToolTip": "Views\\Manifiestos\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:36:14.153Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Contratos\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Contratos\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Contratos\\Index.cshtml",
+              "RelativeToolTip": "Views\\Contratos\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:36:00.991Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Cotizador\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Cotizador\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\Cotizador\\Index.cshtml",
+              "RelativeToolTip": "Views\\Cotizador\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-20T05:35:53.502Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "README_DEV.md",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\README_DEV.md",
+              "RelativeDocumentMoniker": "README_DEV.md",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\README_DEV.md",
+              "RelativeToolTip": "README_DEV.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-19T23:05:56.343Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Web.config",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Web.config",
+              "RelativeDocumentMoniker": "Web.config",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Web.config",
+              "RelativeToolTip": "Web.config",
+              "ViewState": "AgIAAAkAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
+              "WhenOpened": "2026-05-19T23:05:06.26Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "ProspectosViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ProspectosViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ProspectosViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\ProspectosViewController.cs",
+              "RelativeToolTip": "Controllers\\ProspectosViewController.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAEBUwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-19T23:01:41.448Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "AccesoAdministradorViewController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorViewController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AccesoAdministradorViewController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorViewController.cs",
+              "RelativeToolTip": "Controllers\\AccesoAdministradorViewController.cs",
+              "ViewState": "AgIAABcAAAAAAAAAAIBJwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-19T22:53:26.884Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\AccesoAdministrador\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\AccesoAdministrador\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Views\\AccesoAdministrador\\Index.cshtml",
+              "RelativeToolTip": "Views\\AccesoAdministrador\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-05-19T22:51:15.861Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "AccesoAdministradorController.cs",
+              "DocumentMoniker": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AccesoAdministradorController.cs",
+              "ToolTip": "C:\\Users\\Joel Pool\\Downloads\\CRMCiclo\\Controllers\\AccesoAdministradorController.cs",
+              "RelativeToolTip": "Controllers\\AccesoAdministradorController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-19T22:48:56.866Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

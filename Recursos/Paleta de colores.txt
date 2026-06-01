@@ -1,0 +1,11 @@
+|--------PALETA DE COLORES--------|
+Site.cs 
+
+Colores Ciclo Ambiental:
+Café oscuro: #3F281A
+Café claro:  #9E652E
+
+Colores del Sistema:
+Background:  #FAF6F1
+Botones: #3F281A y #9E652E
+

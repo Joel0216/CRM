@@ -1,0 +1,69 @@
+﻿/* Merged styles for CRMCiclo. Palette variables and layout rules. */
+:root {
+    --color-dark-brown:  #3F281A;
+    --color-light-brown: #9E652E;
+    --color-background:  #FAF6F1;
+    --color-white:       #FFFFFF;
+    --color-text:        #3F281A;
+}
+
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: "Inter", "Poppins", "Roboto", sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+#sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: var(--color-light-brown);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-brand { padding: 12px; text-align: center; background: var(--color-dark-brown); }
+.sidebar-brand img { max-height: 40px; }
+
+.nav { margin-top: 8px; }
+.nav .nav-section { color: var(--color-white); font-weight: bold; padding: 10px 16px; text-transform: uppercase; font-size: 0.75rem; }
+.nav .nav-link { color: var(--color-white); padding: 10px 16px; display:block; text-decoration:none; }
+.nav .nav-link:hover, .nav .nav-link.active { background: rgba(0,0,0,0.12); border-radius:6px; }
+
+.sidebar-user { margin-top: auto; padding: 12px; color: white; }
+.sidebar-user .user-avatar { width:34px; height:34px; border-radius:50%; background:var(--color-dark-brown); color:white; display:inline-flex; align-items:center; justify-content:center; font-weight:700 }
+
+/* Main content */
+#main-content { margin-left: 250px; width: calc(100% - 250px); }
+.topbar { height:60px; background: var(--color-dark-brown); color: #fff; display:flex; align-items:center; justify-content:space-between; padding:0 18px; box-shadow:0 2px 6px rgba(0,0,0,0.12); }
+.content-area { padding: 24px; min-height: calc(100vh - 60px); }
+
+/* Prospect table */
+.prospect-table { background: var(--color-white); border-radius:8px; padding:20px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+.prospect-table-header { display:flex; justify-content:space-between; margin-bottom:16px; }
+.table th { color: var(--color-light-brown); font-weight:600 }
+
+/* Badges */
+.badge-status { display:inline-block; padding:6px 12px; border-radius:12px; font-size:0.85rem; font-weight:500 }
+.badge-nuevo { background:#AED6F1 }
+.badge-seguimiento { background:#F9E79F }
+.badge-cotizado { background:#A9DFBF }
+.badge-adeudo { background:#F1948A }
+.badge-inactivo { background:#D5D8DC }
+
+/* Action buttons */
+.btn-action { background: var(--color-dark-brown); color: var(--color-white); border-radius:50%; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border:none }
+.btn-action:hover { background: var(--color-light-brown) }
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar { width: 0; }
+    #main-content { margin-left: 0; width: 100%; }
+}

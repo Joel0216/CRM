@@ -1,0 +1,223 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+using CRMCiclo.Context;
+using CRMCiclo.Models;
+
+namespace CRMCiclo.Controllers
+{
+    public class ProspectosViewController : Controller
+    {
+        public ActionResult Index()
+        {
+            if (Session["UsuarioId"] == null)
+                return RedirectToAction("Index", "AccesoAdministradorView");
+
+            return View("~/Views/Prospectos/Index.cshtml");
+        }
+
+        public ActionResult TablaProspectos()
+        {
+            if (Session["UsuarioId"] == null)
+                return new HttpStatusCodeResult(401);
+
+            List<ProspectoModel> lista = null;
+
+            try
+            {
+                using (var db = new NombreContext())
+                using (var cmd = db.CreateCommand("sp_ObtenerProspectos"))
+                {
+                    db.Connection.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        lista = new List<ProspectoModel>();
+                        while (reader.Read())
+                        {
+                            var p = new ProspectoModel
+                            {
+                                ProspectoId = reader["ProspectoId"] != DBNull.Value ? Convert.ToInt32(reader["ProspectoId"]) : 0,
+                                NombreCompleto = reader["NombreCompleto"]?.ToString(),
+                                Empresa = reader["Empresa"]?.ToString(),
+                                Telefono = reader["Telefono"]?.ToString(),
+                                Email = reader["Email"]?.ToString(),
+                                Origen = reader["Origen"]?.ToString(),
+                                Estatus = reader["Estatus"]?.ToString(),
+                                FechaRegistro = reader["FechaRegistro"] != DBNull.Value ? Convert.ToDateTime(reader["FechaRegistro"]) : DateTime.MinValue,
+                                Notas = reader["Notas"]?.ToString()
+                            };
+                            lista.Add(p);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback: usar lista de ejemplo en Session
+                lista = Session["SampleProspectos"] as List<ProspectoModel> ?? GetSampleProspectos();
+                Session["SampleProspectos"] = lista;
+            }
+
+            ViewBag.Prospectos = lista;
+            return PartialView("~/Views/Prospectos/_TablaProspectos.cshtml");
+        }
+
+        public ActionResult FormularioProspecto(int? id)
+        {
+            if (Session["UsuarioId"] == null)
+                return new HttpStatusCodeResult(401);
+
+            ProspectoModel model = new ProspectoModel();
+
+            if (id.HasValue && id.Value > 0)
+            {
+                try
+                {
+                    // Intentar obtener del DB; si falla, buscar en Session sample
+                    using (var db = new NombreContext())
+                    using (var cmd = db.CreateCommand("sp_ObtenerProspectoPorId"))
+                    {
+                        cmd.Parameters.Add(new SqlParameter("@ProspectoId", SqlDbType.Int) { Value = id.Value });
+                        db.Connection.Open();
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                model.ProspectoId = reader["ProspectoId"] != DBNull.Value ? Convert.ToInt32(reader["ProspectoId"]) : 0;
+                                model.NombreCompleto = reader["NombreCompleto"]?.ToString();
+                                model.Empresa = reader["Empresa"]?.ToString();
+                                model.Telefono = reader["Telefono"]?.ToString();
+                                model.Email = reader["Email"]?.ToString();
+                                model.Origen = reader["Origen"]?.ToString();
+                                model.Estatus = reader["Estatus"]?.ToString();
+                                model.FechaRegistro = reader["FechaRegistro"] != DBNull.Value ? Convert.ToDateTime(reader["FechaRegistro"]) : DateTime.MinValue;
+                                model.Notas = reader["Notas"]?.ToString();
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // fallback: buscar en Session
+                    var lista = Session["SampleProspectos"] as List<ProspectoModel> ?? GetSampleProspectos();
+                    model = lista.Find(x => x.ProspectoId == id.Value) ?? new ProspectoModel();
+                }
+            }
+
+            return PartialView("~/Views/Prospectos/_FormularioProspecto.cshtml", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult GuardarProspecto(ProspectoModel model)
+        {
+            if (Session["UsuarioId"] == null)
+                return Json(new { success = false, mensaje = "No autorizado" });
+            if (model == null)
+                return Json(new { success = false, mensaje = "Datos inválidos" });
+
+            if (string.IsNullOrWhiteSpace(model.NombreCompleto))
+                return Json(new { success = false, mensaje = "El nombre del prospecto es requerido." });
+
+            try
+            {
+                // Intentamos persistir en BD; si no está disponible, guardamos en Session lista de ejemplo
+                using (var db = new NombreContext())
+                using (var cmd = db.CreateCommand(model.ProspectoId > 0 ? "sp_ActualizarProspecto" : "sp_InsertarProspecto"))
+                {
+                    if (model.ProspectoId > 0)
+                        cmd.Parameters.Add(new SqlParameter("@ProspectoId", SqlDbType.Int) { Value = model.ProspectoId });
+
+                    cmd.Parameters.Add(new SqlParameter("@NombreCompleto", SqlDbType.NVarChar, 200) { Value = (object)model.NombreCompleto ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Empresa", SqlDbType.NVarChar, 200) { Value = (object)model.Empresa ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Telefono", SqlDbType.NVarChar, 50) { Value = (object)model.Telefono ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar, 200) { Value = (object)model.Email ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Origen", SqlDbType.NVarChar, 100) { Value = (object)model.Origen ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Estatus", SqlDbType.NVarChar, 100) { Value = (object)model.Estatus ?? DBNull.Value });
+                    cmd.Parameters.Add(new SqlParameter("@Notas", SqlDbType.NVarChar, -1) { Value = (object)model.Notas ?? DBNull.Value });
+
+                    db.Connection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                return Json(new { success = true, mensaje = "Guardado correctamente" });
+            }
+            catch
+            {
+                // Fallback in-memory
+                var lista = Session["SampleProspectos"] as List<ProspectoModel> ?? GetSampleProspectos();
+                if (model.ProspectoId > 0)
+                {
+                    var existing = lista.Find(x => x.ProspectoId == model.ProspectoId);
+                    if (existing != null)
+                    {
+                        existing.NombreCompleto = model.NombreCompleto;
+                        existing.Empresa = model.Empresa;
+                        existing.Telefono = model.Telefono;
+                        existing.Email = model.Email;
+                        existing.Origen = model.Origen;
+                        existing.Estatus = model.Estatus;
+                        existing.Notas = model.Notas;
+                    }
+                    else
+                    {
+                        lista.Add(model);
+                    }
+                }
+                else
+                {
+                    // asignar id simple
+                    model.ProspectoId = lista.Count > 0 ? lista[lista.Count - 1].ProspectoId + 1 : 1001;
+                    model.FechaRegistro = DateTime.Now;
+                    lista.Add(model);
+                }
+
+                Session["SampleProspectos"] = lista;
+                return Json(new { success = true, mensaje = "Guardado correctamente (modo offline)" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult EliminarProspecto(int id)
+        {
+            if (Session["UsuarioId"] == null)
+                return Json(new { success = false, mensaje = "No autorizado" });
+
+            try
+            {
+                using (var db = new NombreContext())
+                using (var cmd = db.CreateCommand("sp_EliminarProspecto"))
+                {
+                    cmd.Parameters.Add(new SqlParameter("@ProspectoId", SqlDbType.Int) { Value = id });
+                    db.Connection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                return Json(new { success = true, mensaje = "Eliminado correctamente" });
+            }
+            catch
+            {
+                // Fallback in-memory
+                var lista = Session["SampleProspectos"] as List<ProspectoModel> ?? GetSampleProspectos();
+                var existing = lista.Find(x => x.ProspectoId == id);
+                if (existing != null) lista.Remove(existing);
+                Session["SampleProspectos"] = lista;
+                return Json(new { success = true, mensaje = "Eliminado correctamente (modo offline)" });
+            }
+        }
+
+        // Generar lista de ejemplo
+        private List<ProspectoModel> GetSampleProspectos()
+        {
+            return new List<ProspectoModel>
+            {
+                new ProspectoModel{ ProspectoId=1001, NombreCompleto="Empresa Sana S.A. de C.V.", Empresa="Empresa Sana", Telefono="55-1234-5678", Email="contacto@empresa.com", Origen="Web", Estatus="Nuevo", FechaRegistro=DateTime.Now.AddDays(-10), Notas=""},
+                new ProspectoModel{ ProspectoId=1002, NombreCompleto="Industrial del Sur", Empresa="Industrial del Sur", Telefono="55-9876-5432", Email="ventas@industrial.com", Origen="Referido", Estatus="En seguimiento", FechaRegistro=DateTime.Now.AddDays(-20), Notas=""},
+                new ProspectoModel{ ProspectoId=1003, NombreCompleto="Comercializadora Norte", Empresa="Comercializadora Norte", Telefono="55-1122-3344", Email="info@comercial.com", Origen="Llamada", Estatus="Cerrado", FechaRegistro=DateTime.Now.AddDays(-30), Notas=""}
+            };
+        }
+    }
+}

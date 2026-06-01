@@ -1,0 +1,41 @@
+﻿using System;
+using System.Configuration;
+using System.Data.SqlClient;
+
+namespace CRMCiclo.Context
+{
+    // Context ligero para ejecutar comandos contra la base de datos usando SqlClient.
+    // Se usa con: using (var db = new NombreContext()) { using(var cmd = db.CreateCommand("sp_name")) { ... } }
+    public class NombreContext : IDisposable
+    {
+        public SqlConnection Connection { get; }
+
+        public NombreContext()
+        {
+            var conn = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
+            Connection = new SqlConnection(conn ?? string.Empty);
+        }
+
+        public SqlCommand CreateCommand(string storedProcedure)
+        {
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = storedProcedure;
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            return cmd;
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (Connection != null)
+                {
+                    if (Connection.State != System.Data.ConnectionState.Closed)
+                        Connection.Close();
+                    Connection.Dispose();
+                }
+            }
+            catch { }
+        }
+    }
+}

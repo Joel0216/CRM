@@ -1,0 +1,79 @@
+﻿using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web.Mvc;
+using CRMCiclo.Context;
+
+namespace CRMCiclo.Controllers
+{
+    public class AccesoAdministradorViewController : Controller
+    {
+        // GET: AccesoAdministrador
+        public ActionResult Index()
+        {
+            return View("~/Views/AccesoAdministrador/Index.cshtml");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Index(string Usuario, string Password)
+        {
+            if (string.IsNullOrEmpty(Usuario) || string.IsNullOrEmpty(Password))
+            {
+                ViewBag.Error = "Credenciales incorrectas";
+                return View();
+            }
+
+            try
+            {
+                using (var db = new NombreContext())
+                using (var cmd = db.CreateCommand("sp_ValidarAdministrador"))
+                {
+                    cmd.Parameters.Add(new SqlParameter("@Usuario", SqlDbType.NVarChar, 100) { Value = Usuario });
+                    cmd.Parameters.Add(new SqlParameter("@Password", SqlDbType.NVarChar, 200) { Value = Password });
+                    db.Connection.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            // Asumimos que el SP retorna UsuarioId y NombreUsuario
+                            var usuarioId = reader["UsuarioId"] != DBNull.Value ? Convert.ToInt32(reader["UsuarioId"]) : 0;
+                            var nombre = reader["NombreUsuario"] != DBNull.Value ? reader["NombreUsuario"].ToString() : Usuario;
+
+                            Session["UsuarioId"] = usuarioId;
+                            Session["NombreUsuario"] = nombre;
+
+                            return RedirectToAction("Index", "PanelAdView");
+                        }
+                        else
+                        {
+                            ViewBag.Error = "Credenciales incorrectas";
+                            return View("~/Views/AccesoAdministrador/Index.cshtml");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Si la aplicación no tiene conexión configurada, permitimos un modo "offline" de pruebas
+                if (ex is InvalidOperationException && ex.Message.Contains("ConnectionString"))
+                {
+                    // Credenciales de prueba en modo offline
+                    if (!string.IsNullOrEmpty(Usuario) && Usuario.Equals("admin", StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrEmpty(Password) && Password == "admin")
+                    {
+                        Session["UsuarioId"] = 1;
+                        Session["NombreUsuario"] = "Administrador (modo offline)";
+                        return RedirectToAction("Index", "PanelAdView");
+                    }
+
+                    ViewBag.Error = "Credenciales incorrectas (modo offline)";
+                    return View("~/Views/AccesoAdministrador/Index.cshtml");
+                }
+
+                ViewBag.Error = "Error en el servidor: " + ex.Message;
+                return View("~/Views/AccesoAdministrador/Index.cshtml");
+            }
+        }
+    }
+}
