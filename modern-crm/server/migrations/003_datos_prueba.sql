@@ -6,6 +6,7 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 SET SQL_SAFE_UPDATES = 0;
+DELETE FROM `crm_cotizaciones_borradores`;
 DELETE FROM `interacciones`;
 DELETE FROM `crm_servicios_cotizados`;
 DELETE FROM `crm_tratos`;
@@ -16,6 +17,7 @@ ALTER TABLE `crm_prospectos` AUTO_INCREMENT = 1;
 ALTER TABLE `crm_tratos` AUTO_INCREMENT = 1;
 ALTER TABLE `crm_servicios_cotizados` AUTO_INCREMENT = 1;
 ALTER TABLE `interacciones` AUTO_INCREMENT = 1;
+ALTER TABLE `crm_cotizaciones_borradores` AUTO_INCREMENT = 1;
 SET SQL_SAFE_UPDATES = 1;
 SET FOREIGN_KEY_CHECKS = 1;
 

@@ -88,12 +88,18 @@ app.get('/api/prospectos', async (req, res) => {
         p.Coordenadas_Manuales as coordenadas_manuales,
         p.Dias_Disponibles as dias_disponibles, p.Horario as horario,
         p.Capacidad_Disponible as capacidad_disponible, p.Ruta as ruta,
+        p.Foto_Comprobante as foto_comprobante, p.Foto_Fachada as foto_fachada,
         p.Fecha_Creacion as fecha
       FROM crm_prospectos p
       LEFT JOIN empresas e ON p.Empresa_ID=e.Empresa_ID
       ORDER BY p.Fecha_Creacion DESC`
     );
-    res.json(rows);
+    const rowsWithImages = rows.map(r => ({
+      ...r,
+      foto_comprobante: r.foto_comprobante ? Buffer.from(r.foto_comprobante).toString('base64') : null,
+      foto_fachada: r.foto_fachada ? Buffer.from(r.foto_fachada).toString('base64') : null
+    }));
+    res.json(rowsWithImages);
   } catch(e){ console.error('GET prospectos:',e); res.status(500).json({error:e.message}); }
 });
 
@@ -135,7 +141,7 @@ app.post('/api/prospectos', async (req, res) => {
          Lat, Lng, Coordenadas_Manuales,
          Dias_Disponibles, Horario, Capacidad_Disponible, Ruta,
          Foto_Comprobante, Foto_Fachada)
-      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         empresaId,
         (contacto||nombre||'').trim(),
@@ -149,12 +155,12 @@ app.post('/api/prospectos', async (req, res) => {
         lng ? parseFloat(lng) : null,
         coordenadas_manuales ? 1 : 0,
         dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null,
-        foto_comprobante || null,
-        foto_fachada || null
+        foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null,
+        foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null
       ]
     );
     res.json({ success:true, id: result.insertId });
-  } catch(e){ console.error('POST prospecto:',e); res.status(500).json({error:e.message}); }
+  } catch(e){ console.error('POST prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
 });
 
 // ─── PROSPECTOS PUT ───────────────────────────────────────────
@@ -170,7 +176,21 @@ app.put('/api/prospectos/:id', async (req, res) => {
       foto_comprobante, foto_fachada
     } = req.body;
 
-    await pool.query(`
+    const updates = [
+      (contacto||nombre||'').trim(),
+      (nombre||contacto||'').trim(),
+      email||null, telefono||null, estatus||'Nuevo',
+      tipoInmueble||null, periodicidadPago||null, parseFloat(monto)||0,
+      servicio||null, notas||null,
+      calle||null, numExt||null, numInt||null,
+      colonia||null, municipio||null, cp||null, estado||null,
+      lat ? parseFloat(lat) : null,
+      lng ? parseFloat(lng) : null,
+      coordenadas_manuales ? 1 : 0,
+      dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null
+    ];
+
+    let sql = `
       UPDATE crm_prospectos SET
         Nombre_Prospecto=?, Nombre_Comercial_Empresa=?,
         Correo=?, Telefono=?, Estatus=?,
@@ -179,27 +199,21 @@ app.put('/api/prospectos/:id', async (req, res) => {
         Calle=?, Num_Ext=?, Num_Int=?,
         Colonia=?, Municipio=?, CP=?, Estado=?,
         Lat=?, Lng=?, Coordenadas_Manuales=?,
-        Dias_Disponibles=?, Horario=?, Capacidad_Disponible=?, Ruta=?,
-        foto_comprobante=COALESCE(?, foto_comprobante),
-        foto_fachada=COALESCE(?, foto_fachada)
-      WHERE Prospecto_ID=?`,
-      [
-        (contacto||nombre||'').trim(),
-        (nombre||contacto||'').trim(),
-        email||null, telefono||null, estatus||'Nuevo',
-        tipoInmueble||null, periodicidadPago||null, parseFloat(monto)||0,
-        servicio||null, notas||null,
-        calle||null, numExt||null, numInt||null,
-        colonia||null, municipio||null, cp||null, estado||null,
-        lat ? parseFloat(lat) : null,
-        lng ? parseFloat(lng) : null,
-        coordenadas_manuales ? 1 : 0,
-        dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null,
-        foto_comprobante || null,
-        foto_fachada || null,
-        id
-      ]
-    );
+        Dias_Disponibles=?, Horario=?, Capacidad_Disponible=?, Ruta=?`;
+
+    if (foto_comprobante !== undefined) {
+      sql += `, Foto_Comprobante=?`;
+      updates.push(foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null);
+    }
+    if (foto_fachada !== undefined) {
+      sql += `, Foto_Fachada=?`;
+      updates.push(foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null);
+    }
+
+    sql += ` WHERE Prospecto_ID=?`;
+    updates.push(id);
+
+    await pool.query(sql, updates);
 
     if (nombre?.trim()) {
       const [pr] = await pool.query(
@@ -213,7 +227,27 @@ app.put('/api/prospectos/:id', async (req, res) => {
       }
     }
     res.json({ success:true });
-  } catch(e){ console.error('PUT prospecto:',e); res.status(500).json({error:e.message}); }
+  } catch(e){ console.error('PUT prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
+});
+
+// ─── PROSPECTOS FOTO (GET) ────────────────────────────────────
+app.get('/api/prospectos/:id/foto/:tipo', async (req, res) => {
+  try {
+    const { id, tipo } = req.params;
+    const col = tipo === 'fachada' ? 'Foto_Fachada' : 'Foto_Comprobante';
+    const [rows] = await pool.query(
+      `SELECT ${col} as foto FROM crm_prospectos WHERE Prospecto_ID=?`, [id]
+    );
+    if (!rows.length || !rows[0].foto) {
+      return res.status(404).json({ error: 'No encontrada' });
+    }
+    // Asumimos que es jpeg o png; como no guardamos el mime, mandamos octet-stream o intentamos adivinar
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.send(rows[0].foto);
+  } catch(e) {
+    console.error('GET foto:', e);
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ─── PROSPECTOS DELETE ────────────────────────────────────────
@@ -352,6 +386,28 @@ app.delete('/api/servicios-cotizados/:id', async (req, res) => {
     await pool.query(`DELETE FROM crm_servicios_cotizados WHERE id=?`, [req.params.id]);
     res.json({ success:true });
   } catch(e) { console.error('DELETE servicios:',e); res.status(500).json({error:e.message}); }
+});
+
+// ─── BORRADORES DE COTIZACIÓN ───────────────────────────────────
+app.get('/api/prospectos/:id/borradores', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT * FROM crm_cotizaciones_borradores WHERE Prospecto_ID=? ORDER BY Fecha_Creacion DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch(e) { console.error('GET borradores:',e); res.status(500).json({error:e.message}); }
+});
+
+app.post('/api/prospectos/:id/borradores', async (req, res) => {
+  try {
+    const { datos } = req.body;
+    const [result] = await pool.query(
+      `INSERT INTO crm_cotizaciones_borradores (Prospecto_ID, Datos_Borrador) VALUES (?, ?)`,
+      [req.params.id, JSON.stringify(datos)]
+    );
+    res.json({ success:true, id: result.insertId });
+  } catch(e) { console.error('POST borradores:',e); res.status(500).json({error:e.message}); }
 });
 
 // ─────────────────────────────────────────────────────────────

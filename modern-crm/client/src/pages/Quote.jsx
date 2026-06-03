@@ -11,25 +11,26 @@ export default function Quote() {
   
   const prospectoIdParam = searchParams.get('prospecto') || state.prospecto_id
 
-  const [items, setItems]           = useState([])
+  const [items, setItems]           = useState(state.borrador?.items || [])
   const [prospecto, setProspecto]   = useState(prospectoIdParam || '')
-  const [nota, setNota]             = useState('')
+  const [nota, setNota]             = useState(state.borrador?.nota || '')
   const [guardado, setGuardado]     = useState(false)
 
   // Verificacion domicilio
-  const [domicilio, setDomicilio]     = useState(state.verificacion_domicilio || '')
-  const [diasServicio, setDiasServicio] = useState(state.dias_servicio_disponibles || '')
-  const [horario, setHorario] = useState(state.horario || '')
-  const [capacidad, setCapacidad] = useState(state.capacidad_disponible || '')
-  const [ruta, setRuta] = useState(state.ruta || '')
-  const [periodicidadPago, setPeriodicidadPago] = useState(state.periodicidad_pago || 'Mensual')
-  const [lat, setLat]                 = useState(state.lat || '')
-  const [lng, setLng]                 = useState(state.lng || '')
+  const [domicilio, setDomicilio]     = useState(state.borrador?.domicilio || state.verificacion_domicilio || '')
+  const [diasServicio, setDiasServicio] = useState(state.borrador?.diasServicio || state.dias_servicio_disponibles || '')
+  const [horario, setHorario] = useState(state.borrador?.horario || state.horario || '')
+  const [capacidad, setCapacidad] = useState(state.borrador?.capacidad || state.capacidad_disponible || '')
+  const [ruta, setRuta] = useState(state.borrador?.ruta || state.ruta || '')
+  const [periodicidadPago, setPeriodicidadPago] = useState(state.borrador?.items?.[0]?.periodicidad_pago || state.periodicidad_pago || 'Mensual')
+  const [lat, setLat]                 = useState(state.borrador?.lat || state.lat || '')
+  const [lng, setLng]                 = useState(state.borrador?.lng || state.lng || '')
   const [adeudo, setAdeudo]           = useState('$0.00')
   const [geocodingMsg, setGeocodingMsg] = useState('')
   const [buscando, setBuscando]       = useState(false)
 
   const [lista, setLista]             = useState([])
+  const [isDraftLoaded, setIsDraftLoaded] = useState(!!state.borrador)
 
   useEffect(() => {
     const fetchProspectos = async () => {
@@ -47,7 +48,7 @@ export default function Quote() {
   useEffect(() => {
     if (prospecto && lista.length > 0) {
       const p = lista.find(x => x.id == prospecto)
-      if (p) {
+      if (p && !isDraftLoaded) {
         const dir = [p.calle, p.numExt, p.colonia, p.municipio, p.cp, p.estado].filter(Boolean).join(', ')
         setDomicilio(dir || '')
         setLat(p.lat || '')
@@ -58,13 +59,23 @@ export default function Quote() {
         setRuta(p.ruta || '')
         setPeriodicidadPago(p.periodicidadPago || 'Mensual')
         
-        setItems(prev => prev.map(i => ({
+        setItems(prev => prev.length === 0 ? [{
+            id: Date.now(),
+            frecuencia: 'Semanal',
+            precio_unitario: 0,
+            volumen_estimado: 1,
+            porcentaje_adicional: 0,
+            periodicidad_pago: p.periodicidadPago || 'Mensual',
+            tipo_residuo: p.servicio || 'RSU',
+            dias_asignados: (p.dias_disponibles || '').split(',').map(x => x.trim()).filter(Boolean)
+        }] : prev.map(i => ({
             ...i,
             periodicidad_pago: p.periodicidadPago || 'Mensual',
             tipo_residuo: p.servicio || 'RSU',
             dias_asignados: (p.dias_disponibles || '').split(',').map(x => x.trim()).filter(Boolean)
         })))
       }
+      setIsDraftLoaded(false) // Only skip the first load if draft is provided
     }
   }, [prospecto, lista])
 
@@ -162,6 +173,27 @@ export default function Quote() {
     })
     setGuardado(true)
     setTimeout(() => setGuardado(false), 3000)
+  }
+
+  const handleGuardarBorrador = async () => {
+    if (!prospecto) return alert('Selecciona un prospecto')
+    const datosBorrador = {
+      items, subtotal, iva, total, nota, domicilio,
+      lat, lng, diasServicio, horario, capacidad, ruta,
+      fechaStr: new Date().toLocaleString()
+    }
+    try {
+      await fetch(`http://localhost:5000/api/prospectos/${prospecto}/borradores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ datos: datosBorrador })
+      })
+      setGuardado(true)
+      setTimeout(() => setGuardado(false), 3000)
+    } catch(e) {
+      console.error(e)
+      alert('Error al guardar borrador')
+    }
   }
 
   const limpiar = () => { setItems([]); setProspecto(''); setNota(''); setDomicilio(''); setLat(''); setLng('') }
@@ -422,8 +454,8 @@ export default function Quote() {
           </div>
 
           <div className="flex gap-2 mt-3" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn btn-ghost" onClick={limpiar}>Guardar borrador</button>
-            <button className="btn btn-ghost" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>Descargar PDF</button>
+            <button className="btn btn-ghost" onClick={handleGuardarBorrador}>Guardar borrador</button>
+            <button className="btn btn-ghost" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => { alert('Generando PDF...'); window.print() }}>Descargar PDF</button>
             <button className="btn btn-primary" onClick={handleGuardar}>Enviar al cliente</button>
           </div>
         </div>

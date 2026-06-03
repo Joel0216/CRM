@@ -459,9 +459,36 @@ function TabFotos({ form, onChange }) {
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      // Recortando el prefijo data:image/*;base64, de la cadena
-      const base64String = e.target.result.split(',')[1];
-      onChange(campo, base64String);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1024;
+        const MAX_HEIGHT = 1024;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Exportar a JPEG con calidad 0.8
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const base64String = dataUrl.split(',')[1];
+        onChange(campo, base64String);
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   };
@@ -477,12 +504,15 @@ function TabFotos({ form, onChange }) {
           onChange={(e) => handleFile('foto_comprobante', e.target.files[0])} 
         />
         {form.foto_comprobante && (
-          <div style={{ marginTop: '12px' }}>
+          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
             <img 
               src={`data:image/jpeg;base64,${form.foto_comprobante}`} 
               alt="Comprobante" 
               style={{ maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }} 
             />
+            <button className="btn btn-sm" style={{ background: '#FFEBEE', color: '#D32F2F' }} onClick={() => onChange('foto_comprobante', null)}>
+              Eliminar foto
+            </button>
           </div>
         )}
       </div>
@@ -496,12 +526,15 @@ function TabFotos({ form, onChange }) {
           onChange={(e) => handleFile('foto_fachada', e.target.files[0])} 
         />
         {form.foto_fachada && (
-          <div style={{ marginTop: '12px' }}>
+          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
             <img 
               src={`data:image/jpeg;base64,${form.foto_fachada}`} 
               alt="Fachada" 
               style={{ maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }} 
             />
+            <button className="btn btn-sm" style={{ background: '#FFEBEE', color: '#D32F2F' }} onClick={() => onChange('foto_fachada', null)}>
+              Eliminar foto
+            </button>
           </div>
         )}
       </div>
@@ -702,7 +735,8 @@ export default function Prospects(){
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px 24px'}}>
               {[['RFC',selected.rfc],['Contacto',selected.contacto],['Teléfono',selected.telefono],
                 ['Email',selected.email],['Tipo de Inmueble',selected.tipoInmueble],
-                ['Periodicidad',selected.periodicidadPago],['Monto',formatMXN(selected.monto)],['Fecha',selected.fecha]
+                ['Periodicidad',selected.periodicidadPago],['Monto',formatMXN(selected.monto)],['Fecha',selected.fecha],
+                ['Días Disponibles',selected.dias_disponibles],['Horario',selected.horario],['Capacidad',selected.capacidad_disponible],['Ruta',selected.ruta]
               ].map(([k,v])=>(
                 <div key={k}>
                   <div className="text-xs text-muted" style={{fontWeight:600,textTransform:'uppercase',marginBottom:4}}>{k}</div>

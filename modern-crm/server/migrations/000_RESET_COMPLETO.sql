@@ -9,6 +9,7 @@ USE prueba1;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ── 1. ELIMINAR TODAS LAS TABLAS EXISTENTES ───────────────────
+DROP TABLE IF EXISTS `crm_cotizaciones_borradores`;
 DROP TABLE IF EXISTS `crm_prospecto_archivos`;
 DROP TABLE IF EXISTS `crm_tareas_seguimiento`;
 DROP TABLE IF EXISTS `tareas_seguimiento`;
@@ -217,9 +218,9 @@ CREATE TABLE `crm_prospectos` (
   `Horario`                 varchar(100)  DEFAULT NULL,
   `Capacidad_Disponible`    varchar(100)  DEFAULT NULL,
   `Ruta`                    varchar(100)  DEFAULT NULL,
-  -- Fotos (base64 o binario corto, aunque preferible en tabla archivos, se agregan aqui por simplicidad)
-  `Foto_Comprobante`        LONGTEXT      DEFAULT NULL,
-  `Foto_Fachada`            LONGTEXT      DEFAULT NULL,
+  -- Fotos
+  `Foto_Comprobante`        LONGBLOB      DEFAULT NULL,
+  `Foto_Fachada`            LONGBLOB      DEFAULT NULL,
   -- Timestamps
   `Fecha_Creacion`          datetime      DEFAULT current_timestamp(),
   PRIMARY KEY (`Prospecto_ID`),
@@ -304,7 +305,18 @@ CREATE TABLE `crm_servicios_cotizados` (
   CONSTRAINT `FK_Servicios_Trato` FOREIGN KEY (`trato_id`) REFERENCES `crm_tratos` (`Trato_ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ── 11. VERIFICAR RESULTADO ───────────────────────────────────
+-- ── 11. BORRADORES DE COTIZACIÓN ───────────────────────────────
+CREATE TABLE `crm_cotizaciones_borradores` (
+  `Borrador_ID`          int(11)       NOT NULL AUTO_INCREMENT,
+  `Prospecto_ID`         int(11)       NOT NULL,
+  `Datos_Borrador`       LONGTEXT      NOT NULL,
+  `Fecha_Creacion`       datetime      DEFAULT current_timestamp(),
+  PRIMARY KEY (`Borrador_ID`),
+  KEY `FK_Borrador_Prospecto` (`Prospecto_ID`),
+  CONSTRAINT `FK_Borrador_Prospecto` FOREIGN KEY (`Prospecto_ID`) REFERENCES `crm_prospectos` (`Prospecto_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── 12. VERIFICAR RESULTADO ───────────────────────────────────
 SELECT
   TABLE_NAME,
   TABLE_ROWS,

@@ -43,11 +43,18 @@ export default function ProspectoDetalle(){
   const navigate=useNavigate()
   const [p,setP]=useState(null)
   const [mapState,setMapState]=useState({loading:false,url:null,notFound:false,label:''})
+  const [borradores, setBorradores] = useState([])
+  const [verBorradores, setVerBorradores] = useState(false)
 
   useEffect(()=>{
-    const found=prospectos.getById(Number(id))
-    setP(found)
-    if(found){geocodificar(found)}
+    fetch('http://localhost:5000/api/prospectos')
+      .then(res => res.json())
+      .then(data => {
+        const found = data.find(x => x.id === Number(id))
+        setP(found)
+        if(found){geocodificar(found)}
+      })
+      .catch(console.error)
   },[id])
 
   const MERIDA_BBOX = { minLat: 20.7, maxLat: 21.2, minLon: -89.9, maxLon: -89.4 }
@@ -220,35 +227,62 @@ export default function ProspectoDetalle(){
       <Section title="Acciones Disponibles">
         <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
           <button className="btn btn-primary" onClick={()=>navigate('/cotizacion', {
-            state: {
-              prospecto_id: p.id,
-              calle: p.calle,
-              numExt: p.numExt,
-              colonia: p.colonia,
-              municipio: p.municipio,
-              cp: p.cp,
-              estado: p.estado,
-              lat: p.lat,
-              lng: p.lng,
-              dias_servicio_disponibles: p.dias_disponibles,
-              horario: p.horario,
-              capacidad_disponible: p.capacidad_disponible,
-              periodicidad_pago: p.periodicidadPago,
-              verificacion_domicilio: p.verificacion_domicilio
-            }
+            state: { prospecto_id: p.id }
           })}>
             Generar Cotización
           </button>
+          <button className="btn btn-ghost" style={{borderColor:'var(--accent)', color:'var(--accent)'}} onClick={async ()=>{
+            try {
+              const res = await fetch(`http://localhost:5000/api/prospectos/${p.id}/borradores`)
+              const data = await res.json()
+              setBorradores(data)
+              setVerBorradores(true)
+            } catch(e) { console.error(e); alert('Error al cargar borradores'); }
+          }}>
+            Ver borradores de cotización
+          </button>
           <button className="btn btn-ghost" onClick={()=>{
             if(confirm(`¿Marcar como Inactivo a ${p.nombre}?`)){
-              prospectos.actualizar(p.id,{estatus:'Inactivo'})
-              navigate('/prospectos')
+              fetch(`http://localhost:5000/api/prospectos/${p.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({...p, estatus: 'Inactivo'})
+              }).then(()=>navigate('/prospectos'))
             }
           }}>
             Dar de Baja
           </button>
         </div>
       </Section>
+
+      {verBorradores && (
+        <div style={{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <div style={{background:'#fff',padding:24,borderRadius:8,width:600,maxWidth:'90%',maxHeight:'80vh',overflow:'auto'}}>
+            <h3 style={{marginBottom:16,fontSize:18,fontWeight:700}}>Borradores de Cotización</h3>
+            {borradores.length === 0 ? (
+              <Alert type="info">No hay borradores guardados para este prospecto.</Alert>
+            ) : (
+              <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                {borradores.map(b => {
+                  const d = JSON.parse(b.Datos_Borrador)
+                  return (
+                    <div key={b.Borrador_ID} style={{padding:16,border:'1px solid var(--border)',borderRadius:8}}>
+                      <div style={{fontWeight:600,marginBottom:4}}>Borrador del {new Date(b.Fecha_Creacion).toLocaleString()}</div>
+                      <div style={{fontSize:13,color:'var(--text2)',marginBottom:8}}>Total: {formatMXN(d.total)} | {d.items?.length || 0} servicios</div>
+                      <button className="btn btn-sm btn-primary" onClick={() => {
+                        navigate('/cotizacion', { state: { prospecto_id: p.id, borrador: d } })
+                      }}>Continuar cotización</button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+            <div style={{marginTop:16,textAlign:'right'}}>
+              <button className="btn btn-ghost" onClick={()=>setVerBorradores(false)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }
