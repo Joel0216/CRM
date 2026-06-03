@@ -16,6 +16,7 @@ const EMPTY = {
   tipoInmueble:'',periodicidadPago:'Mensual',
   calle:'',numExt:'',numInt:'',colonia:'',municipio:'',cp:'',estado:'',
   adeudo:false,
+  foto_comprobante:null, foto_fachada:null
 }
 
 function getBadge(e){
@@ -403,166 +404,60 @@ function TabDireccion({form,onChange,errors,addrAlert,onVerificar,onReactivar}){
   )
 }
 
-function TabFotos({ prospectoId }) {
-  const [archivos, setArchivos] = useState([]);
-  const [subiendo, setSubiendo] = useState(false);
-  const [preview, setPreview] = useState(null);
-
-  const cargarArchivos = async () => {
-    if (!prospectoId) return;
-    try {
-      const r = await fetch(`http://localhost:5000/api/prospectos/${prospectoId}/archivos`);
-      if (r.ok) setArchivos(await r.json());
-    } catch(e) { console.error(e); }
-  };
-
-  useEffect(() => { cargarArchivos(); }, [prospectoId]);
-
-  const handleSubir = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setSubiendo(true);
+function TabFotos({ form, onChange }) {
+  const handleFile = (campo, file) => {
+    if (!file) {
+      onChange(campo, null);
+      return;
+    }
     const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target.result.split(',')[1];
-      try {
-        await fetch(`http://localhost:5000/api/prospectos/${prospectoId}/archivos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            base64,
-            nombre: file.name,
-            tipo: file.type,
-            peso: file.size
-          })
-        });
-        await cargarArchivos();
-      } catch(err) { console.error(err); }
-      setSubiendo(false);
+    reader.onload = (e) => {
+      // Recortando el prefijo data:image/*;base64, de la cadena
+      const base64String = e.target.result.split(',')[1];
+      onChange(campo, base64String);
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
   };
-
-  const handleDescargar = async (archivo) => {
-    try {
-      const r = await fetch(`http://localhost:5000/api/archivos/${archivo.id}`);
-      const data = await r.json();
-      const a = document.createElement('a');
-      a.href = `data:${data.tipo};base64,${data.base64}`;
-      a.download = data.nombre;
-      a.click();
-    } catch(e) { console.error(e); }
-  };
-
-  const handleVerImagen = async (archivo) => {
-    try {
-      const r = await fetch(`http://localhost:5000/api/archivos/${archivo.id}`);
-      const data = await r.json();
-      setPreview({ src: `data:${data.tipo};base64,${data.base64}`, nombre: data.nombre });
-    } catch(e) { console.error(e); }
-  };
-
-  const handleEliminar = async (id) => {
-    if (!confirm('¿Eliminar este archivo?')) return;
-    await fetch(`http://localhost:5000/api/archivos/${id}`, { method: 'DELETE' });
-    cargarArchivos();
-  };
-
-  const esImagen = (tipo) => (tipo||'').startsWith('image/');
-  const formatPeso = (b) => b > 1048576 ? `${(b/1048576).toFixed(1)} MB` : `${Math.round(b/1024)} KB`;
-
-  if (!prospectoId) return (
-    <div style={{textAlign:'center',padding:'40px 0',color:'var(--text3)'}}>
-      <div style={{fontSize:36,marginBottom:12}}>📋</div>
-      <p>Guarda primero el prospecto para poder subir archivos.</p>
-    </div>
-  );
 
   return (
-    <div>
-      {/* Botón subir */}
-      <div style={{marginBottom:16}}>
-        <label style={{
-          display:'inline-flex', alignItems:'center', gap:8,
-          padding:'8px 18px', background:'var(--brown-dark)', color:'#fff',
-          borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:600
-        }}>
-          {subiendo ? '⏳ Subiendo...' : '+ Agregar Archivo'}
-          <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-            style={{display:'none'}} onChange={handleSubir} disabled={subiendo}/>
-        </label>
-        <span style={{fontSize:11,color:'var(--text3)',marginLeft:12}}>
-          Imágenes, PDF, Word, Excel — máx. 10 MB
-        </span>
+    <div style={{ display: 'grid', gap: '24px' }}>
+      <div className="form-group" style={{ padding: '20px', background: 'var(--bg2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <label className="form-label" style={{ fontSize: '14px', marginBottom: '12px' }}>Comprobante de Domicilio</label>
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="form-input" 
+          onChange={(e) => handleFile('foto_comprobante', e.target.files[0])} 
+        />
+        {form.foto_comprobante && (
+          <div style={{ marginTop: '12px' }}>
+            <img 
+              src={`data:image/jpeg;base64,${form.foto_comprobante}`} 
+              alt="Comprobante" 
+              style={{ maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }} 
+            />
+          </div>
+        )}
       </div>
 
-      {/* Lista de archivos */}
-      {archivos.length === 0 ? (
-        <div style={{textAlign:'center',padding:'30px 0',color:'var(--text3)',fontSize:13}}>
-          No hay archivos subidos aún.
-        </div>
-      ) : (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:12}}>
-          {archivos.map(a => (
-            <div key={a.id} style={{
-              border:'1px solid var(--border)', borderRadius:10,
-              overflow:'hidden', background:'#fafafa',
-              display:'flex', flexDirection:'column'
-            }}>
-              {/* Thumbnail */}
-              <div style={{
-                height:100, background:'#f0f0f0',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                cursor: esImagen(a.tipo) ? 'pointer' : 'default'
-              }} onClick={() => esImagen(a.tipo) && handleVerImagen(a)}>
-                {esImagen(a.tipo)
-                  ? <span style={{fontSize:11,color:'#999'}}>Clic para ver</span>
-                  : <span style={{fontSize:32}}>
-                      {a.tipo?.includes('pdf') ? '📄' :
-                       a.tipo?.includes('word') || a.tipo?.includes('doc') ? '📝' :
-                       a.tipo?.includes('sheet') || a.tipo?.includes('xls') ? '📊' : '📎'}
-                    </span>
-                }
-              </div>
-              {/* Info */}
-              <div style={{padding:'8px',flex:1}}>
-                <div style={{fontSize:11,fontWeight:600,wordBreak:'break-all',marginBottom:2}}>
-                  {a.nombre.length > 20 ? a.nombre.slice(0,18)+'…' : a.nombre}
-                </div>
-                <div style={{fontSize:10,color:'var(--text3)'}}>{formatPeso(a.peso)}</div>
-              </div>
-              {/* Acciones */}
-              <div style={{display:'flex',borderTop:'1px solid var(--border)'}}>
-                <button onClick={() => handleDescargar(a)} style={{
-                  flex:1, padding:'6px 0', fontSize:11, border:'none',
-                  background:'none', cursor:'pointer', color:'var(--brown-dark)', fontWeight:600
-                }}>⬇ Descargar</button>
-                <button onClick={() => handleEliminar(a.id)} style={{
-                  flex:1, padding:'6px 0', fontSize:11, border:'none',
-                  borderLeft:'1px solid var(--border)',
-                  background:'none', cursor:'pointer', color:'#C62828', fontWeight:600
-                }}>✕ Borrar</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Lightbox preview */}
-      {preview && (
-        <div onClick={() => setPreview(null)} style={{
-          position:'fixed', inset:0, background:'rgba(0,0,0,0.85)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          zIndex:9999, cursor:'zoom-out'
-        }}>
-          <div style={{maxWidth:'90vw', maxHeight:'90vh', position:'relative'}}>
-            <img src={preview.src} alt={preview.nombre}
-              style={{maxWidth:'100%', maxHeight:'85vh', borderRadius:8, boxShadow:'0 8px 32px rgba(0,0,0,0.4)'}}/>
-            <div style={{textAlign:'center',color:'#fff',marginTop:8,fontSize:13}}>{preview.nombre}</div>
+      <div className="form-group" style={{ padding: '20px', background: 'var(--bg2)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+        <label className="form-label" style={{ fontSize: '14px', marginBottom: '12px' }}>Fachada del Domicilio</label>
+        <input 
+          type="file" 
+          accept="image/*" 
+          className="form-input" 
+          onChange={(e) => handleFile('foto_fachada', e.target.files[0])} 
+        />
+        {form.foto_fachada && (
+          <div style={{ marginTop: '12px' }}>
+            <img 
+              src={`data:image/jpeg;base64,${form.foto_fachada}`} 
+              alt="Fachada" 
+              style={{ maxHeight: '150px', borderRadius: '4px', border: '1px solid #ccc' }} 
+            />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -741,7 +636,7 @@ export default function Prospects(){
           <Tabs tabs={['Datos Personales','Dirección','Fotos']} active={tab} onChange={setTab}/>
           {tab==='Datos Personales'&&<TabDatos form={form} onChange={handleChange} errors={errors}/>}
           {tab==='Dirección'&&<TabDireccion form={form} onChange={handleChange} errors={errors} addrAlert={addrAlert} onVerificar={verificarDireccion} onReactivar={handleReactivar}/>}
-          {tab==='Fotos'&&<TabFotos prospectoId={selected?.id}/>}
+          {tab==='Fotos'&&<TabFotos form={form} onChange={handleChange}/>}
           <div className="flex gap-2 mt-3" style={{justifyContent:'flex-end'}}>
             <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
             <button className="btn btn-primary" onClick={handleGuardar}>{modal==='crear'?'Crear Prospecto':'Guardar Cambios'}</button>
@@ -790,7 +685,7 @@ export default function Prospects(){
                 :<Alert type="success">Sin adeudo detectado en este domicilio.</Alert>}
             </div>
           )}
-          {tab==='Fotos'&&<TabFotos prospectoId={selected?.id}/>}
+          {tab==='Fotos'&&<TabFotos form={selected} onChange={() => {}}/>}
           <div className="flex gap-2 mt-4" style={{justifyContent:'flex-end'}}>
             <button className="btn btn-ghost" onClick={cerrar}>Cerrar</button>
             <button className="btn btn-accent" onClick={()=>setFacturaModal(true)}>Convertir a Cliente</button>

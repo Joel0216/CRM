@@ -216,7 +216,21 @@ export default function ProspectoDetalle(){
       {/* Acciones disponibles */}
       <Section title="Acciones Disponibles">
         <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-          <button className="btn btn-primary" onClick={()=>navigate(`/cotizacion?prospecto=${p.id}`)}>
+          <button className="btn btn-primary" onClick={()=>navigate('/cotizacion', {
+            state: {
+              prospecto_id: p.id,
+              calle: p.calle,
+              numExt: p.numExt,
+              colonia: p.colonia,
+              municipio: p.municipio,
+              cp: p.cp,
+              estado: p.estado,
+              lat: p.lat,
+              lng: p.lng,
+              dias_servicio_disponibles: p.dias_servicio_disponibles,
+              verificacion_domicilio: p.verificacion_domicilio
+            }
+          })}>
             Generar Cotización
           </button>
           <button className="btn btn-accent" onClick={()=>{

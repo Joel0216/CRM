@@ -1,23 +1,26 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { SERVICIOS, prospectos } from '../data'
+import { useSearchParams, useLocation } from 'react-router-dom'
+import { prospectos } from '../data'
 import Layout from './Layout'
 import MapView from './MapView'
 
 export default function Quote() {
   const [searchParams] = useSearchParams()
-  const prospectoIdParam = searchParams.get('prospecto')
+  const location = useLocation()
+  const state = location.state || {}
+  
+  const prospectoIdParam = searchParams.get('prospecto') || state.prospecto_id
 
   const [items, setItems]           = useState([])
   const [prospecto, setProspecto]   = useState(prospectoIdParam || '')
   const [nota, setNota]             = useState('')
-  const [frecuencia, setFrecuencia] = useState('Mensual')
   const [guardado, setGuardado]     = useState(false)
 
   // Verificacion domicilio
-  const [domicilio, setDomicilio]     = useState('')
-  const [lat, setLat]                 = useState('')
-  const [lng, setLng]                 = useState('')
+  const [domicilio, setDomicilio]     = useState(state.verificacion_domicilio || '')
+  const [diasServicio, setDiasServicio] = useState(state.dias_servicio_disponibles || '')
+  const [lat, setLat]                 = useState(state.lat || '')
+  const [lng, setLng]                 = useState(state.lng || '')
   const [adeudo, setAdeudo]           = useState('$0.00')
   const [geocodingMsg, setGeocodingMsg] = useState('')
   const [buscando, setBuscando]       = useState(false)
@@ -45,7 +48,6 @@ export default function Quote() {
         if (dir) setDomicilio(dir)
         if (p.lat) setLat(p.lat)
         if (p.lng) setLng(p.lng)
-        if (p.periodicidadPago) setFrecuencia(p.periodicidadPago)
       }
     }
   }, [prospectoIdParam, lista])
@@ -86,20 +88,61 @@ export default function Quote() {
   const updateItem = (id, field, val) =>
     setItems(items.map(i => i.id === id ? { ...i, [field]: val } : i))
 
-  const subtotal  = items.reduce((s, i) => s + Math.max(0, i.precio * i.cantidad * (1 + (i.porcentaje || 0) / 100) * (1 - (i.descuento || 0) / 100)), 0)
+  const toggleDia = (itemId, dia) => {
+    setItems(items.map(i => {
+      if(i.id !== itemId) return i;
+      const dias = i.dias_asignados || [];
+      return { ...i, dias_asignados: dias.includes(dia) ? dias.filter(d => d !== dia) : [...dias, dia] };
+    }));
+  }
+
+  const subtotal  = items.reduce((s, i) => s + Math.max(0, (i.precio_unitario || 0) * (i.volumen_estimado || 1) * (1 + (i.porcentaje_adicional || 0) / 100)), 0)
   const iva       = subtotal * 0.16
   const total     = subtotal + iva
 
   const formatMXN = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     if (!prospecto) return alert('Selecciona un prospecto')
     if (items.length === 0) return alert('Agrega al menos un servicio')
-    const servicios = items.map(i => `${i.nombre} (x${i.cantidad})`).join(', ')
+    
+    // Create Trato first (mock API call to create or get trato ID, assuming endpoint exists or backend logic handles it)
+    try {
+      const tratoRes = await fetch('http://localhost:5000/api/tratos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prospecto_id: prospecto,
+          nombre_trato: 'Cotización CRM',
+          importe: total,
+          fase_id: 2
+        })
+      });
+      const tratoData = tratoRes.ok ? await tratoRes.json() : { id: Date.now() }; // Fallback for local mock
+      const tratoId = tratoData.id || tratoData.insertId || Date.now();
+
+      for (const item of items) {
+        await fetch('http://localhost:5000/api/servicios-cotizados', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            trato_id: tratoId,
+            tipo_residuo: item.tipo_residuo,
+            frecuencia: item.frecuencia,
+            periodicidad_pago: item.periodicidad_pago,
+            volumen_estimado: item.volumen_estimado,
+            precio_unitario: item.precio_unitario,
+            dias_asignados: (item.dias_asignados || []).join(','),
+            porcentaje_adicional: item.porcentaje_adicional
+          })
+        });
+      }
+    } catch(e) { console.error("Error guardando servicios:", e) }
+
     prospectos.actualizar(Number(prospecto), {
-      estatus: 'Cotizacion',
+      estatus: 'Cotizado',
       monto: Math.round(total),
-      notas: `Cotizacion ${frecuencia}: ${servicios}. Domicilio: ${domicilio}. ${nota}`,
+      notas: `Cotización guardada. Domicilio: ${domicilio}. Días de servicio: ${diasServicio}. ${nota}`,
     })
     setGuardado(true)
     setTimeout(() => setGuardado(false), 3000)
@@ -161,7 +204,7 @@ export default function Quote() {
 
       {/* Verificacion del domicilio */}
       <div className="card mb-4" style={{ marginBottom: 20 }}>
-        <div className="card-header">Verificacion del Domicilio</div>
+        <div className="card-header">VERIFICACIÓN DEL DOMICILIO Y DÍAS DE SERVICIO DISPONIBLES</div>
         <div style={{ padding: 20 }}>
           {/* Busqueda de domicilio */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
@@ -198,6 +241,10 @@ export default function Quote() {
                 <input className="form-input" value={lng} onChange={e => setLng(e.target.value)} placeholder="-89.6199727..." />
               </div>
               <div className="form-group">
+                <label className="form-label">Días de servicio disponibles</label>
+                <input className="form-input" value={diasServicio} onChange={e => setDiasServicio(e.target.value)} placeholder="Ej: Lunes, Miércoles, Viernes" />
+              </div>
+              <div className="form-group">
                 <label className="form-label">Adeudo del domicilio</label>
                 <input className="form-input" value={adeudo} onChange={e => setAdeudo(e.target.value)} />
               </div>
@@ -221,8 +268,8 @@ export default function Quote() {
         <div className="card-header">Servicios a cotizar</div>
         <div style={{ padding: 20 }}>
           {/* Encabezado de tabla */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 70px 100px 90px 90px 100px 36px', gap: 8, padding: '8px 0', borderBottom: '2px solid var(--border)', marginBottom: 8 }}>
-            {['Servicio', 'Frecuencia', 'Veces', 'Precio Unitario', '% adicional', 'Descuento', 'Subtotal', ''].map((h, i) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 40px', gap: 8, padding: '8px 0', borderBottom: '2px solid var(--border)', marginBottom: 8 }}>
+            {['Tipo de Residuo', 'Días', 'Frecuencia', 'Periodicidad Pago', 'Vol. Estimado', 'Precio U.', '% Adicional', 'Subtotal', ''].map((h, i) => (
               <span key={i} className="text-xs text-muted" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{h}</span>
             ))}
           </div>
@@ -232,63 +279,66 @@ export default function Quote() {
           )}
 
           {items.map(item => (
-            <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 90px 70px 100px 90px 90px 100px 36px', gap: 8, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border-light)' }}>
-              <span style={{ fontWeight: 600, fontSize: 13 }}>{item.nombre}</span>
-              <span style={{ fontSize: 13, color: 'var(--text2)' }}>{frecuencia}</span>
-              <input
-                className="form-input"
-                type="number" min={1}
-                style={{ padding: '5px 8px', fontSize: 12 }}
-                value={item.cantidad}
-                onChange={e => updateItem(item.id, 'cantidad', Math.max(1, Number(e.target.value)))}
-              />
-              <span style={{ fontSize: 13, fontWeight: 500 }}>{formatMXN(item.precio)}</span>
-              <input
-                className="form-input"
-                type="number" min={0} step={0.1}
-                style={{ padding: '5px 8px', fontSize: 12 }}
-                value={item.porcentaje}
-                onChange={e => updateItem(item.id, 'porcentaje', Number(e.target.value))}
-                placeholder="0.0"
-              />
-              <div style={{display:'flex', alignItems:'center', gap:4}}>
-                <input
-                  className="form-input"
-                  type="number" min={0} step={0.1}
-                  style={{ padding: '5px 8px', fontSize: 12, width:'100%' }}
-                  value={item.descuento || ''}
-                  onChange={e => updateItem(item.id, 'descuento', Number(e.target.value))}
-                  placeholder="0.0"
-                />
-                <span style={{fontSize:12}}>%</span>
+            <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 40px', gap: 8, alignItems: 'start' }}>
+                <div>
+                  <select className="form-input" value={item.tipo_residuo} onChange={e => updateItem(item.id, 'tipo_residuo', e.target.value)}>
+                    <option value="RSU">RSU (Residuos Sólidos Urbanos)</option>
+                    <option value="RME">RME (Residuos de Manejo Especial)</option>
+                  </select>
+                  <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, lineHeight: 1.2 }}>
+                    {item.tipo_residuo === 'RSU' 
+                      ? 'Basura regular, límite de 2 bolsas de 200L domiciliarias' 
+                      : 'Requiere Plan de Manejo avalado por la SDS'}
+                  </div>
+                </div>
+
+                <div style={{display:'flex', gap:4, flexWrap:'wrap'}}>
+                  {['Lun','Mar','Mie','Jue','Vie','Sab','Dom'].map(d => (
+                    <div key={d} onClick={() => toggleDia(item.id, d)}
+                         style={{ fontSize:10, padding:'4px 6px', borderRadius:12, cursor:'pointer', border:'1px solid var(--border)',
+                         background: (item.dias_asignados||[]).includes(d) ? '#E8F5E9' : '#fff',
+                         color: (item.dias_asignados||[]).includes(d) ? '#2E7D32' : 'var(--text3)',
+                         fontWeight: (item.dias_asignados||[]).includes(d) ? 700 : 500 }}>
+                      {d}
+                    </div>
+                  ))}
+                </div>
+
+                <select className="form-input" value={item.frecuencia} onChange={e => updateItem(item.id, 'frecuencia', e.target.value)}>
+                  <option>Semanal</option>
+                  <option>Quincenal</option>
+                  <option>Mensual</option>
+                  <option>Bimestral</option>
+                </select>
+                <select className="form-input" value={item.periodicidad_pago} onChange={e => updateItem(item.id, 'periodicidad_pago', e.target.value)}>
+                  <option>Mensual</option>
+                  <option>Trimestral</option>
+                  <option>Semestral</option>
+                  <option>Anual</option>
+                </select>
+                <input className="form-input" type="number" min={1} value={item.volumen_estimado} onChange={e => updateItem(item.id, 'volumen_estimado', Math.max(1, Number(e.target.value)))} />
+                <input className="form-input" type="number" min={0} step={0.1} value={item.precio_unitario} onChange={e => updateItem(item.id, 'precio_unitario', Number(e.target.value))} />
+                <input className="form-input" type="number" min={0} step={0.1} value={item.porcentaje_adicional} onChange={e => updateItem(item.id, 'porcentaje_adicional', Number(e.target.value))} placeholder="%" />
+                
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
+                  {formatMXN(Math.max(0, (item.precio_unitario || 0) * (item.volumen_estimado || 1) * (1 + (item.porcentaje_adicional || 0) / 100)))}
+                </span>
+                <button
+                  style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid #EF9A9A', background: 'white', color: '#C62828', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 4 }}
+                  onClick={() => setItems(items.filter(i => i.id !== item.id))}
+                >-</button>
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
-                {formatMXN(Math.max(0, item.precio * item.cantidad * (1 + (item.porcentaje || 0) / 100) * (1 - (item.descuento || 0) / 100)))}
-              </span>
-              <button
-                style={{ width: 28, height: 28, borderRadius: '50%', border: '2px solid #EF9A9A', background: 'white', color: '#C62828', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={() => setItems(items.filter(i => i.id !== item.id))}
-              >-</button>
             </div>
           ))}
 
-          {/* Selector de servicios */}
+          {/* Boton agregar */}
           <div style={{ marginTop: 16 }}>
-            <select
-              className="form-input"
-              style={{ width: 'auto', minWidth: 280 }}
-              onChange={e => {
-                const srv = SERVICIOS.find(s => s.id === Number(e.target.value))
-                if (srv && !isSelected(srv.id)) toggleServicio(srv)
-                e.target.value = ''
-              }}
-              defaultValue=""
-            >
-              <option value="" disabled>+ Agregar servicio...</option>
-              {SERVICIOS.filter(s => !isSelected(s.id)).map(s => (
-                <option key={s.id} value={s.id}>{s.nombre}</option>
-              ))}
-            </select>
+            <button className="btn btn-ghost" onClick={() => setItems([...items, {
+              id: Date.now(), tipo_residuo: 'RSU', frecuencia: 'Semanal', periodicidad_pago: 'Mensual', volumen_estimado: 1, precio_unitario: 0, dias_asignados: [], porcentaje_adicional: 0
+            }])}>
+              + Agregar servicio
+            </button>
           </div>
         </div>
       </div>
@@ -298,14 +348,7 @@ export default function Quote() {
         <div className="card-header">Periodicidad de Pago</div>
         <div style={{ padding: 20 }}>
           <div className="freq-buttons" style={{ maxWidth: 500, marginBottom: 20 }}>
-            {FREQ.map(f => (
-              <button key={f} className={`freq-btn ${frecuencia === f ? 'active' : ''}`} onClick={() => setFrecuencia(f)}>
-                <div style={{ fontWeight: 600 }}>{f}</div>
-                <div style={{ fontSize: 11, opacity: 0.7 }}>
-                  {f==='Mensual'?'Pago cada mes':f==='Trimestral'?'Pago cada 3 meses':f==='Semestral'?'Pago cada 6 meses':'Pago único anual'}
-                </div>
-              </button>
-            ))}
+            {/* Eliminados botones globales de periodicidad ya que ahora están por fila */}
           </div>
 
           {/* Aviso pago */}
@@ -325,7 +368,7 @@ export default function Quote() {
               <div className="totals-row"><span>Subtotal servicios</span><span>{formatMXN(subtotal)}</span></div>
               <div className="totals-row"><span>IVA (16%)</span><span>{formatMXN(iva)}</span></div>
               <div className="totals-total">
-                <span>TOTAL {frecuencia.toUpperCase()}</span>
+                <span>TOTAL A PAGAR</span>
                 <span>{formatMXN(total)}</span>
               </div>
             </div>

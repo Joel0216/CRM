@@ -102,7 +102,7 @@ app.post('/api/prospectos', async (req, res) => {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, periodicidadPago, monto, servicio, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales
+      lat, lng, coordenadas_manuales, foto_comprobante, foto_fachada
     } = req.body;
 
     let empresaId = 1;
@@ -128,8 +128,8 @@ app.post('/api/prospectos', async (req, res) => {
          Nombre_Prospecto, Nombre_Comercial_Empresa, Correo, Telefono, Estatus,
          Tipo_Inmueble, Periodicidad_Pago, Monto, Servicio, Notas,
          Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado,
-         Lat, Lng, Coordenadas_Manuales)
-      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         Lat, Lng, Coordenadas_Manuales, foto_comprobante, foto_fachada)
+      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         empresaId,
         (contacto||nombre||'').trim(),
@@ -141,7 +141,9 @@ app.post('/api/prospectos', async (req, res) => {
         colonia||null, municipio||null, cp||null, estado||null,
         lat ? parseFloat(lat) : null,
         lng ? parseFloat(lng) : null,
-        coordenadas_manuales ? 1 : 0
+        coordenadas_manuales ? 1 : 0,
+        foto_comprobante ? Buffer.from(foto_comprobante, 'base64') : null,
+        foto_fachada ? Buffer.from(foto_fachada, 'base64') : null
       ]
     );
     res.json({ success:true, id: result.insertId });
@@ -156,7 +158,7 @@ app.put('/api/prospectos/:id', async (req, res) => {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, periodicidadPago, monto, servicio, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales
+      lat, lng, coordenadas_manuales, foto_comprobante, foto_fachada
     } = req.body;
 
     await pool.query(`
@@ -167,7 +169,9 @@ app.put('/api/prospectos/:id', async (req, res) => {
         Servicio=?, Notas=?,
         Calle=?, Num_Ext=?, Num_Int=?,
         Colonia=?, Municipio=?, CP=?, Estado=?,
-        Lat=?, Lng=?, Coordenadas_Manuales=?
+        Lat=?, Lng=?, Coordenadas_Manuales=?,
+        foto_comprobante=COALESCE(?, foto_comprobante),
+        foto_fachada=COALESCE(?, foto_fachada)
       WHERE Prospecto_ID=?`,
       [
         (contacto||nombre||'').trim(),
@@ -180,6 +184,8 @@ app.put('/api/prospectos/:id', async (req, res) => {
         lat ? parseFloat(lat) : null,
         lng ? parseFloat(lng) : null,
         coordenadas_manuales ? 1 : 0,
+        foto_comprobante ? Buffer.from(foto_comprobante, 'base64') : null,
+        foto_fachada ? Buffer.from(foto_fachada, 'base64') : null,
         id
       ]
     );
@@ -286,6 +292,55 @@ app.delete('/api/archivos/:archivoId', async (req, res) => {
     );
     res.json({ success:true });
   } catch(e){ console.error('Delete archivo:',e); res.status(500).json({error:e.message}); }
+});
+
+// ─── TRATOS ───────────────────────────────────────────────────
+app.post('/api/tratos', async (req, res) => {
+  try {
+    const { prospecto_id, nombre_trato, importe, fase_id } = req.body;
+    const [r] = await pool.query(
+      `INSERT INTO crm_tratos (Prospecto_ID, Nombre_Trato, Importe, Fase_ID) VALUES (?,?,?,?)`,
+      [prospecto_id, nombre_trato, importe, fase_id]
+    );
+    res.json({ success:true, id: r.insertId });
+  } catch(e) { console.error('POST tratos:',e); res.status(500).json({error:e.message}); }
+});
+
+// ─── SERVICIOS COTIZADOS CRUD ─────────────────────────────────
+app.post('/api/servicios-cotizados', async (req, res) => {
+  try {
+    const { trato_id, tipo_residuo, frecuencia, periodicidad_pago, volumen_estimado, precio_unitario, dias_asignados, porcentaje_adicional } = req.body;
+    const [r] = await pool.query(
+      `INSERT INTO crm_servicios_cotizados (trato_id, tipo_residuo, frecuencia, periodicidad_pago, volumen_estimado, precio_unitario, dias_asignados, porcentaje_adicional) VALUES (?,?,?,?,?,?,?,?)`,
+      [trato_id, tipo_residuo, frecuencia, periodicidad_pago, volumen_estimado, precio_unitario, dias_asignados, porcentaje_adicional]
+    );
+    res.json({ success:true, id: r.insertId });
+  } catch(e) { console.error('POST servicios:',e); res.status(500).json({error:e.message}); }
+});
+
+app.get('/api/servicios-cotizados/:trato_id', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT * FROM crm_servicios_cotizados WHERE trato_id=?`, [req.params.trato_id]);
+    res.json(rows);
+  } catch(e) { console.error('GET servicios:',e); res.status(500).json({error:e.message}); }
+});
+
+app.put('/api/servicios-cotizados/:id', async (req, res) => {
+  try {
+    const { tipo_residuo, frecuencia, periodicidad_pago, volumen_estimado, precio_unitario, dias_asignados, porcentaje_adicional } = req.body;
+    await pool.query(
+      `UPDATE crm_servicios_cotizados SET tipo_residuo=?, frecuencia=?, periodicidad_pago=?, volumen_estimado=?, precio_unitario=?, dias_asignados=?, porcentaje_adicional=? WHERE id=?`,
+      [tipo_residuo, frecuencia, periodicidad_pago, volumen_estimado, precio_unitario, dias_asignados, porcentaje_adicional, req.params.id]
+    );
+    res.json({ success:true });
+  } catch(e) { console.error('PUT servicios:',e); res.status(500).json({error:e.message}); }
+});
+
+app.delete('/api/servicios-cotizados/:id', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM crm_servicios_cotizados WHERE id=?`, [req.params.id]);
+    res.json({ success:true });
+  } catch(e) { console.error('DELETE servicios:',e); res.status(500).json({error:e.message}); }
 });
 
 // ─────────────────────────────────────────────────────────────
