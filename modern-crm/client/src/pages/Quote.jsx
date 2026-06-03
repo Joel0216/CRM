@@ -19,6 +19,10 @@ export default function Quote() {
   // Verificacion domicilio
   const [domicilio, setDomicilio]     = useState(state.verificacion_domicilio || '')
   const [diasServicio, setDiasServicio] = useState(state.dias_servicio_disponibles || '')
+  const [horario, setHorario] = useState(state.horario || '')
+  const [capacidad, setCapacidad] = useState(state.capacidad_disponible || '')
+  const [ruta, setRuta] = useState(state.ruta || '')
+  const [periodicidadPago, setPeriodicidadPago] = useState(state.periodicidad_pago || 'Mensual')
   const [lat, setLat]                 = useState(state.lat || '')
   const [lng, setLng]                 = useState(state.lng || '')
   const [adeudo, setAdeudo]           = useState('$0.00')
@@ -41,16 +45,28 @@ export default function Quote() {
   }, [])
 
   useEffect(() => {
-    if (prospectoIdParam && lista.length > 0) {
-      const p = lista.find(x => x.id === Number(prospectoIdParam))
+    if (prospecto && lista.length > 0) {
+      const p = lista.find(x => x.id == prospecto)
       if (p) {
         const dir = [p.calle, p.numExt, p.colonia, p.municipio, p.cp, p.estado].filter(Boolean).join(', ')
-        if (dir) setDomicilio(dir)
-        if (p.lat) setLat(p.lat)
-        if (p.lng) setLng(p.lng)
+        setDomicilio(dir || '')
+        setLat(p.lat || '')
+        setLng(p.lng || '')
+        setDiasServicio(p.dias_disponibles || '')
+        setHorario(p.horario || '')
+        setCapacidad(p.capacidad_disponible || '')
+        setRuta(p.ruta || '')
+        setPeriodicidadPago(p.periodicidadPago || 'Mensual')
+        
+        setItems(prev => prev.map(i => ({
+            ...i,
+            periodicidad_pago: p.periodicidadPago || 'Mensual',
+            tipo_residuo: p.servicio || 'RSU',
+            dias_asignados: (p.dias_disponibles || '').split(',').map(x => x.trim()).filter(Boolean)
+        })))
       }
     }
-  }, [prospectoIdParam, lista])
+  }, [prospecto, lista])
 
   // Geocodificacion con Nominatim (OpenStreetMap, sin API key)
   const buscarDomicilio = async () => {
@@ -176,17 +192,7 @@ export default function Quote() {
         <div style={{ padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0 20px' }}>
           <div className="form-group">
             <label className="form-label">Prospecto</label>
-            <select className="form-input" value={prospecto} onChange={e => {
-              setProspecto(e.target.value)
-              const p=lista.find(x=>x.id===Number(e.target.value))
-              if(p){
-                const dir=[p.calle,p.numExt,p.colonia,p.municipio,p.cp,p.estado].filter(Boolean).join(', ')
-                if(dir) setDomicilio(dir)
-                if(p.lat) setLat(p.lat)
-                if(p.lng) setLng(p.lng)
-                if(p.periodicidadPago) setFrecuencia(p.periodicidadPago)
-              }
-            }}>
+            <select className="form-input" value={prospecto} onChange={e => setProspecto(e.target.value)}>
               <option value="">-- Seleccionar --</option>
               {lista.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
             </select>
@@ -205,59 +211,97 @@ export default function Quote() {
       {/* Verificacion del domicilio */}
       <div className="card mb-4" style={{ marginBottom: 20 }}>
         <div className="card-header">VERIFICACIÓN DEL DOMICILIO Y DÍAS DE SERVICIO DISPONIBLES</div>
-        <div style={{ padding: 20 }}>
-          {/* Busqueda de domicilio */}
-          <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
-              <label className="form-label">Domicilio de Servicio</label>
+        <div style={{ padding: '0 20px 20px 20px' }}>
+          {/* Header Búsqueda */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'end', marginBottom: 20 }}>
+            <div>
+              <label className="form-label" style={{ fontSize: 13, color: '#333' }}>Domicilio de Servicio</label>
               <input
                 className="form-input"
+                style={{ backgroundColor: '#FCFBF8', borderColor: '#E0E0E0' }}
                 value={domicilio}
                 onChange={e => setDomicilio(e.target.value)}
                 placeholder="Ej: Calle 54 #120, Merida, Yucatan"
                 onKeyDown={e => e.key === 'Enter' && buscarDomicilio()}
               />
             </div>
-            <div style={{ paddingTop: 22 }}>
-              <button className="btn btn-accent" onClick={buscarDomicilio} disabled={buscando}>
+            <div>
+              <button className="btn btn-accent" onClick={buscarDomicilio} disabled={buscando} style={{ backgroundColor: '#A1887F', borderColor: '#A1887F', color: '#fff' }}>
                 {buscando ? 'Buscando...' : 'Buscar'}
               </button>
             </div>
           </div>
 
-          {/* Mapa + campos lat/lng */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20, alignItems: 'start' }}>
-            <div style={{ height: 280, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr', gap: 24 }}>
+            {/* Mapa Izquierda */}
+            <div style={{ height: 320, borderRadius: 4, overflow: 'hidden', border: '1px solid #CFD8DC' }}>
                 <MapView lat={lat} lng={lng} onLocationChange={handleLocationChange} />
             </div>
 
-            <div>
-              <div className="form-group">
-                <label className="form-label">Latitud del domicilio</label>
-                <input className="form-input" value={lat} onChange={e => setLat(e.target.value)} placeholder="20.9700348..." />
+            {/* Inputs Centro */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label className="form-label" style={{ fontSize: 13, color: '#333' }}>Latitud del domicilio del servicio</label>
+                <input className="form-input" style={{ backgroundColor: '#FCFBF8', borderColor: '#E0E0E0' }} value={lat} onChange={e => setLat(e.target.value)} placeholder="20.9700348..." />
               </div>
-              <div className="form-group">
-                <label className="form-label">Longitud del domicilio</label>
-                <input className="form-input" value={lng} onChange={e => setLng(e.target.value)} placeholder="-89.6199727..." />
+              <div>
+                <label className="form-label" style={{ fontSize: 13, color: '#333' }}>Altitud del domicilio del servicio</label>
+                <input className="form-input" style={{ backgroundColor: '#FCFBF8', borderColor: '#E0E0E0' }} value={lng} onChange={e => setLng(e.target.value)} placeholder="-89.6199727..." />
               </div>
-              <div className="form-group">
-                <label className="form-label">Días de servicio disponibles</label>
-                <input className="form-input" value={diasServicio} onChange={e => setDiasServicio(e.target.value)} placeholder="Ej: Lunes, Miércoles, Viernes" />
+              <div>
+                <label className="form-label" style={{ fontSize: 13, color: '#333' }}>Adeudo del domicilio</label>
+                <input className="form-input" style={{ backgroundColor: '#FCFBF8', borderColor: '#E0E0E0' }} value={adeudo} onChange={e => setAdeudo(e.target.value)} />
               </div>
-              <div className="form-group">
-                <label className="form-label">Adeudo del domicilio</label>
-                <input className="form-input" value={adeudo} onChange={e => setAdeudo(e.target.value)} />
+              <div style={{ marginTop: 'auto', textAlign: 'center' }}>
+                {geocodingMsg && (
+                  <p style={{ fontSize: 12, color: geocodingMsg.includes('No se encontro') || geocodingMsg.includes('Error') ? '#C62828' : '#2E7D32', fontWeight: 600 }}>
+                    {geocodingMsg}
+                  </p>
+                )}
+                {adeudo === '$0.00' && (
+                  <p style={{ fontSize: 12, color: '#2E7D32', fontWeight: 700, marginTop: 4 }}>
+                    Sin adeudo detectado en este domicilio.
+                  </p>
+                )}
               </div>
-              {geocodingMsg && (
-                <p style={{ fontSize: 12, color: geocodingMsg.includes('No se encontro') || geocodingMsg.includes('Error') ? '#C62828' : '#2E7D32', fontWeight: 500 }}>
-                  {geocodingMsg}
-                </p>
-              )}
-              {adeudo === '$0.00' && (
-                <p style={{ fontSize: 12, color: '#9E652E', fontWeight: 500, marginTop: 4 }}>
-                  Sin adeudo detectado en este domicilio.
-                </p>
-              )}
+            </div>
+
+            {/* Panel Derecha (Pills) */}
+            <div style={{ backgroundColor: '#F1F8E9', border: '1px solid #AED581', borderRadius: 8, padding: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label className="form-label" style={{ fontSize: 14, color: '#333', marginBottom: 8 }}>Días disponibles</label>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {(diasServicio || 'Sin asignar').split(',').map(d => (
+                    <span key={d.trim()} style={{ backgroundColor: '#C8E6C9', color: '#2E7D32', padding: '4px 12px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: '1px solid #A5D6A7' }}>
+                      {d.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="form-label" style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Ruta</label>
+                <div>
+                  <span style={{ backgroundColor: '#E3F2FD', color: '#1565C0', padding: '4px 12px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: '1px solid #BBDEFB' }}>
+                    {ruta || 'Sin asignar'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="form-label" style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Horario</label>
+                <div>
+                  <span style={{ backgroundColor: '#E3F2FD', color: '#1565C0', padding: '4px 12px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: '1px solid #BBDEFB' }}>
+                    {horario || 'Sin asignar'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="form-label" style={{ fontSize: 14, color: '#333', marginBottom: 4 }}>Capacidad disponible</label>
+                <div>
+                  <span style={{ backgroundColor: '#E3F2FD', color: '#1565C0', padding: '4px 24px', borderRadius: 16, fontSize: 11, fontWeight: 600, border: '1px solid #BBDEFB' }}>
+                    {capacidad || '0%'}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -282,7 +326,7 @@ export default function Quote() {
             <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border-light)' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 40px', gap: 8, alignItems: 'start' }}>
                 <div>
-                  <select className="form-input" value={item.tipo_residuo} onChange={e => updateItem(item.id, 'tipo_residuo', e.target.value)}>
+                  <select className="form-input" value={item.tipo_residuo} onChange={e => updateItem(item.id, 'tipo_residuo', e.target.value)} disabled>
                     <option value="RSU">RSU (Residuos Sólidos Urbanos)</option>
                     <option value="RME">RME (Residuos de Manejo Especial)</option>
                   </select>
@@ -311,11 +355,8 @@ export default function Quote() {
                   <option>Mensual</option>
                   <option>Bimestral</option>
                 </select>
-                <select className="form-input" value={item.periodicidad_pago} onChange={e => updateItem(item.id, 'periodicidad_pago', e.target.value)}>
-                  <option>Mensual</option>
-                  <option>Trimestral</option>
-                  <option>Semestral</option>
-                  <option>Anual</option>
+                <select className="form-input" value={item.periodicidad_pago} onChange={e => updateItem(item.id, 'periodicidad_pago', e.target.value)} disabled>
+                  <option value={periodicidadPago}>{periodicidadPago}</option>
                 </select>
                 <input className="form-input" type="number" min={1} value={item.volumen_estimado} onChange={e => updateItem(item.id, 'volumen_estimado', Math.max(1, Number(e.target.value)))} />
                 <input className="form-input" type="number" min={0} step={0.1} value={item.precio_unitario} onChange={e => updateItem(item.id, 'precio_unitario', Number(e.target.value))} />
@@ -335,7 +376,7 @@ export default function Quote() {
           {/* Boton agregar */}
           <div style={{ marginTop: 16 }}>
             <button className="btn btn-ghost" onClick={() => setItems([...items, {
-              id: Date.now(), tipo_residuo: 'RSU', frecuencia: 'Semanal', periodicidad_pago: 'Mensual', volumen_estimado: 1, precio_unitario: 0, dias_asignados: [], porcentaje_adicional: 0
+              id: Date.now(), tipo_residuo: state.servicio || 'RSU', frecuencia: 'Semanal', periodicidad_pago: periodicidadPago, volumen_estimado: 1, precio_unitario: 0, dias_asignados: [], porcentaje_adicional: 0
             }])}>
               + Agregar servicio
             </button>

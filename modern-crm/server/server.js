@@ -86,6 +86,8 @@ app.get('/api/prospectos', async (req, res) => {
         p.Colonia as colonia, p.Municipio as municipio, p.CP as cp,
         p.Estado as estado, p.Lat as lat, p.Lng as lng,
         p.Coordenadas_Manuales as coordenadas_manuales,
+        p.Dias_Disponibles as dias_disponibles, p.Horario as horario,
+        p.Capacidad_Disponible as capacidad_disponible, p.Ruta as ruta,
         p.Fecha_Creacion as fecha
       FROM crm_prospectos p
       LEFT JOIN empresas e ON p.Empresa_ID=e.Empresa_ID
@@ -102,7 +104,9 @@ app.post('/api/prospectos', async (req, res) => {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, periodicidadPago, monto, servicio, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales, foto_comprobante, foto_fachada
+      lat, lng, coordenadas_manuales, 
+      dias_disponibles, horario, capacidad_disponible, ruta,
+      foto_comprobante, foto_fachada
     } = req.body;
 
     let empresaId = 1;
@@ -128,8 +132,10 @@ app.post('/api/prospectos', async (req, res) => {
          Nombre_Prospecto, Nombre_Comercial_Empresa, Correo, Telefono, Estatus,
          Tipo_Inmueble, Periodicidad_Pago, Monto, Servicio, Notas,
          Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado,
-         Lat, Lng, Coordenadas_Manuales, foto_comprobante, foto_fachada)
-      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         Lat, Lng, Coordenadas_Manuales,
+         Dias_Disponibles, Horario, Capacidad_Disponible, Ruta,
+         Foto_Comprobante, Foto_Fachada)
+      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         empresaId,
         (contacto||nombre||'').trim(),
@@ -142,8 +148,9 @@ app.post('/api/prospectos', async (req, res) => {
         lat ? parseFloat(lat) : null,
         lng ? parseFloat(lng) : null,
         coordenadas_manuales ? 1 : 0,
-        foto_comprobante ? Buffer.from(foto_comprobante, 'base64') : null,
-        foto_fachada ? Buffer.from(foto_fachada, 'base64') : null
+        dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null,
+        foto_comprobante || null,
+        foto_fachada || null
       ]
     );
     res.json({ success:true, id: result.insertId });
@@ -158,7 +165,9 @@ app.put('/api/prospectos/:id', async (req, res) => {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, periodicidadPago, monto, servicio, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales, foto_comprobante, foto_fachada
+      lat, lng, coordenadas_manuales, 
+      dias_disponibles, horario, capacidad_disponible, ruta,
+      foto_comprobante, foto_fachada
     } = req.body;
 
     await pool.query(`
@@ -170,6 +179,7 @@ app.put('/api/prospectos/:id', async (req, res) => {
         Calle=?, Num_Ext=?, Num_Int=?,
         Colonia=?, Municipio=?, CP=?, Estado=?,
         Lat=?, Lng=?, Coordenadas_Manuales=?,
+        Dias_Disponibles=?, Horario=?, Capacidad_Disponible=?, Ruta=?,
         foto_comprobante=COALESCE(?, foto_comprobante),
         foto_fachada=COALESCE(?, foto_fachada)
       WHERE Prospecto_ID=?`,
@@ -184,8 +194,9 @@ app.put('/api/prospectos/:id', async (req, res) => {
         lat ? parseFloat(lat) : null,
         lng ? parseFloat(lng) : null,
         coordenadas_manuales ? 1 : 0,
-        foto_comprobante ? Buffer.from(foto_comprobante, 'base64') : null,
-        foto_fachada ? Buffer.from(foto_fachada, 'base64') : null,
+        dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null,
+        foto_comprobante || null,
+        foto_fachada || null,
         id
       ]
     );

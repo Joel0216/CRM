@@ -4,6 +4,8 @@
 --  Ejecutar COMPLETO en MySQL Workbench
 -- ================================================================
 
+USE prueba1;
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ── 1. ELIMINAR TODAS LAS TABLAS EXISTENTES ───────────────────
@@ -12,6 +14,7 @@ DROP TABLE IF EXISTS `crm_tareas_seguimiento`;
 DROP TABLE IF EXISTS `tareas_seguimiento`;
 DROP TABLE IF EXISTS `crm_agenda_eventos`;
 DROP TABLE IF EXISTS `crm_encuestas_satisfaccion`;
+DROP TABLE IF EXISTS `crm_servicios_cotizados`;
 DROP TABLE IF EXISTS `crm_tratos`;
 DROP TABLE IF EXISTS `oportunidades_negocio`;
 DROP TABLE IF EXISTS `prospecto_necesidades`;
@@ -209,6 +212,14 @@ CREATE TABLE `crm_prospectos` (
   `Lat`                     decimal(10,8) DEFAULT NULL,
   `Lng`                     decimal(11,8) DEFAULT NULL,
   `Coordenadas_Manuales`    tinyint(1)    NOT NULL DEFAULT 0,
+  -- Operaciones
+  `Dias_Disponibles`        varchar(150)  DEFAULT NULL,
+  `Horario`                 varchar(100)  DEFAULT NULL,
+  `Capacidad_Disponible`    varchar(100)  DEFAULT NULL,
+  `Ruta`                    varchar(100)  DEFAULT NULL,
+  -- Fotos (base64 o binario corto, aunque preferible en tabla archivos, se agregan aqui por simplicidad)
+  `Foto_Comprobante`        LONGTEXT      DEFAULT NULL,
+  `Foto_Fachada`            LONGTEXT      DEFAULT NULL,
   -- Timestamps
   `Fecha_Creacion`          datetime      DEFAULT current_timestamp(),
   PRIMARY KEY (`Prospecto_ID`),
@@ -277,7 +288,23 @@ CREATE TABLE `interacciones` (
     FOREIGN KEY (`Prospecto_ID`) REFERENCES `crm_prospectos` (`Prospecto_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ── 10. VERIFICAR RESULTADO ───────────────────────────────────
+-- ── 10. SERVICIOS COTIZADOS ──────────────────────────────────────
+CREATE TABLE `crm_servicios_cotizados` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `trato_id` int(11) NOT NULL,
+  `tipo_residuo` varchar(150) DEFAULT NULL,
+  `frecuencia` varchar(100) DEFAULT NULL,
+  `periodicidad_pago` varchar(50) DEFAULT NULL,
+  `volumen_estimado` varchar(100) DEFAULT NULL,
+  `precio_unitario` decimal(12,2) DEFAULT 0.00,
+  `dias_asignados` varchar(255) DEFAULT NULL,
+  `porcentaje_adicional` decimal(5,2) DEFAULT 0.00,
+  PRIMARY KEY (`id`),
+  KEY `FK_Servicios_Trato` (`trato_id`),
+  CONSTRAINT `FK_Servicios_Trato` FOREIGN KEY (`trato_id`) REFERENCES `crm_tratos` (`Trato_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── 11. VERIFICAR RESULTADO ───────────────────────────────────
 SELECT
   TABLE_NAME,
   TABLE_ROWS,

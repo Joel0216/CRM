@@ -14,6 +14,7 @@ const EMPTY = {
   nombre:'',rfc:'',contacto:'',telefono:'',email:'',
   estatus:'Nuevo',servicio:'',fecha:'',notas:'',monto:0,
   tipoInmueble:'',periodicidadPago:'Mensual',
+  dias_disponibles:'', horario:'', capacidad_disponible:'',
   calle:'',numExt:'',numInt:'',colonia:'',municipio:'',cp:'',estado:'',
   adeudo:false,
   foto_comprobante:null, foto_fachada:null
@@ -45,7 +46,10 @@ function FSelect({label,campo,value,onChange,error,options,req=false}){
       <select className="form-input" value={value||''} style={error?{borderColor:'#C62828'}:{}}
         onChange={e=>onChange(campo,e.target.value)}>
         {req&&<option value="">-- Seleccionar --</option>}
-        {options.map(o=><option key={o}>{o}</option>)}
+        {options.map(o => {
+          if (typeof o === 'object') return <option key={o.val} value={o.val}>{o.lbl}</option>
+          return <option key={o} value={o}>{o}</option>
+        })}
       </select>
       {error&&<span style={{fontSize:11,color:'#C62828'}}>{error}</span>}
     </div>
@@ -156,9 +160,52 @@ function TabDatos({form,onChange,errors}){
       )}
 
       <FSelect campo="periodicidadPago" label="Periodicidad de Pago" req options={PERIODICIDADES} value={form.periodicidadPago} onChange={onChange} error={errors.periodicidadPago}/>
+      
+      <div className="form-group">
+        <label className="form-label">Días disponibles</label>
+        <div style={{display:'flex', gap:6, flexWrap:'wrap', marginTop:4}}>
+          {['Lun','Mar','Mie','Jue','Vie','Sab','Dom'].map(d => {
+            const arr = (form.dias_disponibles||'').split(',').map(x=>x.trim()).filter(Boolean);
+            const active = arr.includes(d);
+            return (
+              <div key={d} onClick={() => {
+                const n = active ? arr.filter(x=>x!==d) : [...arr, d];
+                onChange('dias_disponibles', n.join(', '));
+              }}
+              style={{ fontSize:12, padding:'6px 10px', borderRadius:14, cursor:'pointer', border:'1px solid var(--border)',
+              background: active ? '#E8F5E9' : '#fff',
+              color: active ? '#2E7D32' : 'var(--text3)',
+              fontWeight: active ? 700 : 500, transition: 'all 0.2s' }}>
+                {d}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">Horario (Rango de horas)</label>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input className="form-input" type="time" value={(form.horario || '').split(' - ')[0] || ''} onChange={e => {
+            const end = (form.horario || '').split(' - ')[1] || '';
+            onChange('horario', `${e.target.value}${end ? ' - ' + end : ''}`);
+          }} />
+          <span style={{ fontSize: 13, color: 'var(--text3)', fontWeight: 600 }}>a</span>
+          <input className="form-input" type="time" value={(form.horario || '').split(' - ')[1] || ''} onChange={e => {
+            const start = (form.horario || '').split(' - ')[0] || '';
+            onChange('horario', `${start ? start + ' - ' : ''}${e.target.value}`);
+          }} />
+        </div>
+      </div>
+
+      <FInput campo="capacidad_disponible" label="Capacidad disponible" value={form.capacidad_disponible} onChange={onChange} placeholder="Ej: 80%" />
       <FSelect campo="estatus" label="Estatus" options={ESTATUSES} value={form.estatus} onChange={onChange} error={null}/>
       <FInput campo="monto" label="Monto estimado (MXN)" type="number" value={form.monto} onChange={onChange} error={null}/>
-      <FInput campo="servicio" label="Servicio" full value={form.servicio} onChange={onChange} error={null} placeholder="Tipo de servicio"/>
+      
+      <FSelect campo="servicio" label="Tipo de Residuo (Servicio)" req options={[
+        {val: 'RSU', lbl: 'RSU (Residuos Sólidos Urbanos)'},
+        {val: 'RME', lbl: 'RME (Residuos de Manejo Especial)'}
+      ]} value={form.servicio} onChange={onChange} error={errors.servicio} />
       <FInput campo="fecha" label="Fecha" type="date" value={form.fecha} onChange={onChange} error={null}/>
       <div className="form-group" style={{gridColumn:'1/-1'}}>
         <label className="form-label">Notas</label>
@@ -639,7 +686,11 @@ export default function Prospects(){
           {tab==='Fotos'&&<TabFotos form={form} onChange={handleChange}/>}
           <div className="flex gap-2 mt-3" style={{justifyContent:'flex-end'}}>
             <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
-            <button className="btn btn-primary" onClick={handleGuardar}>{modal==='crear'?'Crear Prospecto':'Guardar Cambios'}</button>
+            {tab !== 'Fotos' ? (
+              <button className="btn btn-primary" onClick={() => setTab(tab === 'Datos Personales' ? 'Dirección' : 'Fotos')}>Siguiente</button>
+            ) : (
+              <button className="btn btn-primary" onClick={handleGuardar}>{modal==='crear'?'Crear Prospecto':'Guardar Cambios'}</button>
+            )}
           </div>
         </Modal>
       )}

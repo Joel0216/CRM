@@ -150,6 +150,9 @@ export default function ProspectoDetalle(){
             <Field label="Fecha de Alta" value={p.fecha}/>
             <Field label="Servicio" value={p.servicio}/>
             <Field label="Monto Estimado" value={formatMXN(p.monto)}/>
+            <Field label="Días Disponibles" value={p.dias_disponibles}/>
+            <Field label="Horario" value={p.horario}/>
+            <Field label="Capacidad Disponible" value={p.capacidad_disponible}/>
           </div>
           {p.notas&&(
             <div style={{marginTop:8,padding:'12px',background:'var(--bg2)',borderRadius:8,fontSize:13,color:'var(--text2)'}}>
@@ -227,19 +230,14 @@ export default function ProspectoDetalle(){
               estado: p.estado,
               lat: p.lat,
               lng: p.lng,
-              dias_servicio_disponibles: p.dias_servicio_disponibles,
+              dias_servicio_disponibles: p.dias_disponibles,
+              horario: p.horario,
+              capacidad_disponible: p.capacidad_disponible,
+              periodicidad_pago: p.periodicidadPago,
               verificacion_domicilio: p.verificacion_domicilio
             }
           })}>
             Generar Cotización
-          </button>
-          <button className="btn btn-accent" onClick={()=>{
-            if(confirm(`¿Convertir a ${p.nombre} en cliente activo?`)){
-              prospectos.actualizar(p.id,{estatus:'En seguimiento'})
-              navigate('/prospectos')
-            }
-          }}>
-            Marcar En Seguimiento
           </button>
           <button className="btn btn-ghost" onClick={()=>{
             if(confirm(`¿Marcar como Inactivo a ${p.nombre}?`)){

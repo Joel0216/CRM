@@ -3,6 +3,8 @@
 --  Ejecutar en MySQL Workbench / phpMyAdmin / CLI
 -- ============================================================
 
+USE prueba1;
+
 -- 1. Convertir Estatus de ENUM rígido a VARCHAR flexible
 --    para admitir: Nuevo, En seguimiento, Cotizado, Adeudo, Inactivo
 ALTER TABLE crm_prospectos
@@ -24,7 +26,13 @@ ALTER TABLE crm_prospectos
   ADD COLUMN Estado          VARCHAR(100)     NULL,
   ADD COLUMN Lat             DECIMAL(10,8)    NULL,
   ADD COLUMN Lng             DECIMAL(11,8)    NULL,
-  ADD COLUMN Coordenadas_Manuales TINYINT(1)  NOT NULL DEFAULT 0;
+  ADD COLUMN Coordenadas_Manuales TINYINT(1)  NOT NULL DEFAULT 0,
+  ADD COLUMN Dias_Disponibles VARCHAR(150)    NULL,
+  ADD COLUMN Horario         VARCHAR(100)     NULL,
+  ADD COLUMN Capacidad_Disponible VARCHAR(100) NULL,
+  ADD COLUMN Ruta            VARCHAR(100)     NULL,
+  ADD COLUMN Foto_Comprobante LONGTEXT        NULL,
+  ADD COLUMN Foto_Fachada    LONGTEXT         NULL;
 
 -- 3. Verificar resultado
 SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT

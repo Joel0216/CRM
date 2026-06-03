@@ -184,28 +184,26 @@ export default function Dashboard() {
               <span style={{ fontSize: 11, width: 120 }}>Toda la organización</span>
               <div style={{ flex: 1, position: 'relative' }}>
                 {/* Etiqueta tooltip */}
-                <div style={{ position: 'absolute', top: -50, left: '50%', transform: 'translateX(-50%)', background: '#fff', border: '1px solid #ccc', padding: '6px 12px', fontSize: 11, zIndex: 2 }}>
-                  <div style={{ fontWeight: 600 }}>Alcanzado : {formatMXN(ingresosActuales)}</div>
-                  <div>Se ha logrado un {Math.round((ingresosActuales/objetivoIngresos)*100)}% del objetivo</div>
+                <div style={{ position: 'absolute', top: -50, left: 0, background: '#fff', border: '1px solid #ccc', padding: '6px 12px', fontSize: 11, zIndex: 2, borderRadius: 4 }}>
+                  <div style={{ fontWeight: 600 }}>Alcanzado: {formatMXN(ingresosActuales)}</div>
+                  <div>Logrado: {Math.round((ingresosActuales/objetivoIngresos)*100)}% de {formatMXN(objetivoIngresos)}</div>
                 </div>
                 
                 {/* Barra de progreso */}
-                <div style={{ width: '100%', height: 40, background: '#e0e0e0', position: 'relative' }}>
-                  <div style={{ width: `${Math.min((ingresosActuales/objetivoIngresos)*100, 100)}%`, height: '100%', background: '#A5D6A7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
+                <div style={{ width: '100%', height: 40, background: '#e0e0e0', position: 'relative', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min((ingresosActuales/objetivoIngresos)*100, 100)}%`, height: '100%', background: '#A5D6A7', display: 'flex', alignItems: 'center', paddingLeft: 10, fontSize: 11, fontWeight: 700, color: '#2E7D32' }}>
                     {formatMXN(ingresosActuales)}
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', borderLeft: '1px dashed #666' }} />
-                  <div style={{ position: 'absolute', right: 0, top: 0, height: '100%', borderRight: '1px dashed #666' }} />
+                  <div style={{ position: 'absolute', right: 0, top: 0, height: '100%', borderRight: '2px dashed #333' }} />
                 </div>
-                <div style={{ fontSize: 10, position: 'absolute', top: 5, left: 10, color: '#333' }}>Objetivo: {formatMXN(objetivoIngresos)}</div>
               </div>
             </div>
             
-            {/* Eje X inventado */}
+            {/* Eje X */}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginLeft: 130, marginTop: 5, fontSize: 9, color: '#888' }}>
-              <span>0</span><span>100000</span><span>200000</span><span>300000</span><span>400000</span><span>500000</span><span>600000</span><span>700000</span><span>800000</span>
+              <span>$0</span><span>$350k</span><span>$700k</span>
             </div>
-            <div style={{ textAlign: 'center', fontSize: 11, marginTop: 5, marginLeft: 130 }}>Suma de Importe</div>
+            <div style={{ textAlign: 'center', fontSize: 11, marginTop: 10, marginLeft: 130, color: '#666' }}>Suma de Importe (MXN)</div>
           </Card>
         </div>
 
@@ -233,23 +231,22 @@ export default function Dashboard() {
 
           <Card title="POSIBLES CLIENTES POR ORIGEN" style={{ height: 350, position: 'relative' }}>
              {origenesData.length > 0 ? (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 220, height: 220 }}>
-                  <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: pieCss, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: 130, height: 130, background: '#fff', borderRadius: '50%' }}></div>
+               <div style={{ display: 'flex', height: '100%', alignItems: 'center' }}>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ width: 180, height: 180, borderRadius: '50%', background: pieCss, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 110, height: 110, background: '#fff', borderRadius: '50%' }}></div>
                   </div>
-                  {/* Fake Labels around the donut */}
-                  {origenesData.map((d, i) => {
-                     const angle = (i * (360 / origenesData.length)) * (Math.PI / 180);
-                     const x = 110 + 130 * Math.sin(angle);
-                     const y = 110 - 130 * Math.cos(angle);
-                     return (
-                       <div key={d.origen} style={{ position: 'absolute', left: x, top: y, transform: 'translate(-50%, -50%)', fontSize: 9, textAlign: 'center', background: 'rgba(255,255,255,0.9)', padding: 2 }}>
-                         <div>{d.origen}</div>
-                         <div>{d.count} ({d.pct}%)</div>
-                       </div>
-                     )
-                  })}
                 </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6, paddingRight: 10, overflowY: 'auto', maxHeight: 200 }}>
+                  {origenesData.map(d => (
+                    <div key={d.origen} style={{ display: 'flex', alignItems: 'center', fontSize: 11 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: ORIGEN_COLORS[d.origen] || ORIGEN_COLORS['Default'], marginRight: 6, flexShrink: 0 }}></div>
+                      <div style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.origen}</div>
+                      <div style={{ fontWeight: 600, marginLeft: 6 }}>{d.count} ({d.pct}%)</div>
+                    </div>
+                  ))}
+                </div>
+               </div>
              ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', fontSize: 12, color: '#aaa' }}>No hay datos suficientes para la gráfica</div>
              )}
