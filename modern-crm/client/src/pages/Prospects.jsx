@@ -12,9 +12,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const EMPTY = {
   nombre:'',rfc:'',contacto:'',telefono:'',email:'',
-  estatus:'Nuevo',servicio:'',fecha:'',notas:'',monto:0,
-  tipoInmueble:'',periodicidadPago:'Mensual',
-  dias_disponibles:'', horario:'', capacidad_disponible:'',
+  estatus:'Nuevo',notas:'',
+  tipoInmueble:'', tipoPersona:'Moral', tieneSucursales:'No',
+  sucursales:[], contactos:[],
+  dias_disponibles:'', horario:'',
   calle:'',numExt:'',numInt:'',colonia:'',municipio:'',cp:'',estado:'',
   adeudo:false,
   foto_comprobante:null, foto_fachada:null
@@ -110,13 +111,24 @@ function TabDatos({form,onChange,errors}){
     }
   }
 
+  const [modalS, setModalS] = useState(false);
+  const [modalC, setModalC] = useState(false);
+  const [sForm, setSForm] = useState({});
+  const [cForm, setCForm] = useState({});
+  const [editIdx, setEditIdx] = useState(-1);
+  const [tabS, setTabS] = useState('DATOS PERSONALES');
+
   return(
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0 16px'}}>
       <FInput campo="nombre" label="Razón Social" req full value={form.nombre} onChange={onChange} error={errors.nombre} placeholder="Nombre o razón social"/>
-      <FInput campo="rfc" label="RFC" value={form.rfc} onChange={onChange} error={errors.rfc} placeholder="RFC (opcional)"/>
-      <FInput campo="contacto" label="Contacto" value={form.contacto} onChange={onChange} error={errors.contacto}/>
+      <FInput campo="contacto" label="Nombre completo del contacto" value={form.contacto} onChange={onChange} error={errors.contacto}/>
       <FInput campo="telefono" label="Teléfono" req value={form.telefono} onChange={onChange} error={errors.telefono} placeholder="10 dígitos"/>
-      <FInput campo="email" label="Email" req full type="email" value={form.email} onChange={onChange} error={errors.email} placeholder="correo@empresa.mx"/>
+      <FInput campo="rfc" label="RFC" value={form.rfc} onChange={onChange} error={errors.rfc} placeholder="RFC (opcional)"/>
+      
+      <FSelect campo="tieneSucursales" label="Tienes sucursales" options={['-- Seleccionar --', 'Sí', 'No']} value={form.tieneSucursales} onChange={onChange} error={null}/>
+      
+      <FSelect campo="tipoPersona" label="Tipo de persona" options={['-- Seleccionar --', 'Física', 'Moral']} value={form.tipoPersona} onChange={onChange} error={null}/>
+      <FInput campo="email" label="Email" req type="email" value={form.email} onChange={onChange} error={errors.email} placeholder="correo@empresa.mx"/>
 
       {/* Tipo de Inmueble */}
       <div className="form-group">
@@ -159,7 +171,7 @@ function TabDatos({form,onChange,errors}){
         <div />
       )}
 
-      <FSelect campo="periodicidadPago" label="Periodicidad de Pago" req options={PERIODICIDADES} value={form.periodicidadPago} onChange={onChange} error={errors.periodicidadPago}/>
+      <div />
       
       <div className="form-group">
         <label className="form-label">Días disponibles</label>
@@ -198,20 +210,103 @@ function TabDatos({form,onChange,errors}){
         </div>
       </div>
 
-      <FInput campo="capacidad_disponible" label="Capacidad disponible" value={form.capacidad_disponible} onChange={onChange} placeholder="Ej: 80%" />
       <FSelect campo="estatus" label="Estatus" options={ESTATUSES} value={form.estatus} onChange={onChange} error={null}/>
-      <FInput campo="monto" label="Monto estimado (MXN)" type="number" value={form.monto} onChange={onChange} error={null}/>
       
-      <FSelect campo="servicio" label="Tipo de Residuo (Servicio)" req options={[
-        {val: 'RSU', lbl: 'RSU (Residuos Sólidos Urbanos)'},
-        {val: 'RME', lbl: 'RME (Residuos de Manejo Especial)'}
-      ]} value={form.servicio} onChange={onChange} error={errors.servicio} />
-      <FInput campo="fecha" label="Fecha" type="date" value={form.fecha} onChange={onChange} error={null}/>
-      <div className="form-group" style={{gridColumn:'1/-1'}}>
+      {form.tieneSucursales === 'Sí' && (
+        <div style={{gridColumn:'1/-1', marginTop:16}}>
+          <div style={{fontWeight:700, color:'var(--brown-dark)', borderBottom:'2px solid var(--border)', paddingBottom:4, marginBottom:12, textTransform:'uppercase'}}>
+            &gt; GESTIÓN DE SUCURSALES
+          </div>
+          {(form.sucursales||[]).map((s, i) => (
+            <div key={i} style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid var(--border)', padding:'8px 0'}}>
+              <span style={{fontWeight:600, fontSize:13}}>{s.nombre_sucursal}</span>
+              <div style={{display:'flex', gap:10}}>
+                <button className="btn btn-sm btn-ghost" style={{padding:'4px 8px'}} onClick={(e)=>{e.preventDefault(); setSForm(s); setEditIdx(i); setModalS(true)}}>👁</button>
+                <button className="btn btn-sm btn-danger" style={{padding:'4px 8px'}} onClick={(e)=>{e.preventDefault(); onChange('sucursales', form.sucursales.filter((_, idx)=>idx!==i))}}>−</button>
+              </div>
+            </div>
+          ))}
+          <div style={{textAlign:'right', marginTop:12}}>
+            <button className="btn btn-sm" style={{background:'var(--brown-dark)', color:'white'}} onClick={(e)=>{e.preventDefault(); setSForm({}); setEditIdx(-1); setModalS(true)}}>+ Agregar Sucursal</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{gridColumn:'1/-1', marginTop:16}}>
+        <div style={{fontWeight:700, color:'var(--brown-dark)', borderBottom:'2px solid var(--border)', paddingBottom:4, marginBottom:12, textTransform:'uppercase'}}>
+          &gt; DATOS DE CONTACTO
+        </div>
+        {(form.contactos||[]).map((c, i) => (
+          <div key={i} style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid var(--border)', padding:'8px 0'}}>
+            <span style={{fontWeight:600, fontSize:13}}>{c.nombre_contacto}</span>
+            <div style={{display:'flex', gap:10}}>
+              <button className="btn btn-sm btn-ghost" style={{padding:'4px 8px'}} onClick={(e)=>{e.preventDefault(); setCForm(c); setEditIdx(i); setModalC(true)}}>👁</button>
+              <button className="btn btn-sm btn-danger" style={{padding:'4px 8px'}} onClick={(e)=>{e.preventDefault(); onChange('contactos', form.contactos.filter((_, idx)=>idx!==i))}}>−</button>
+            </div>
+          </div>
+        ))}
+        <div style={{textAlign:'right', marginTop:12}}>
+          <button className="btn btn-sm" style={{background:'var(--brown-dark)', color:'white'}} onClick={(e)=>{e.preventDefault(); setCForm({}); setEditIdx(-1); setModalC(true)}}>+ Agregar Contacto</button>
+        </div>
+      </div>
+
+      <div className="form-group" style={{gridColumn:'1/-1', marginTop:16}}>
         <label className="form-label">Notas</label>
         <textarea className="form-input" rows={3} value={form.notas||''} placeholder="Observaciones..."
           onChange={e=>onChange('notas',e.target.value)}/>
       </div>
+
+      {modalS && (
+        <Modal title="AGREGAR SUCURSAL" onClose={()=>setModalS(false)} wide>
+          <Tabs tabs={['DATOS PERSONALES','DIRECCIÓN','FOTOS']} active={tabS} onChange={setTabS}/>
+          {tabS === 'DATOS PERSONALES' && (
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+              <FInput campo="nombre_sucursal" label="Nombre de Sucursal" req value={sForm.nombre_sucursal} onChange={(c,v)=>setSForm({...sForm, [c]:v})} placeholder="Ej. Empresa SA de CV"/>
+              <FInput campo="telefono_sucursal" label="Teléfono de sucursal" req value={sForm.telefono_sucursal} onChange={(c,v)=>setSForm({...sForm, [c]:v})} placeholder="000 000 0000"/>
+              <FInput campo="correo_electronico" label="Correo electrónico" req value={sForm.correo_electronico} onChange={(c,v)=>setSForm({...sForm, [c]:v})} placeholder="correo@ejemplo.com"/>
+              <FInput campo="nombre_responsable" label="Nombre del responsable" req value={sForm.nombre_responsable} onChange={(c,v)=>setSForm({...sForm, [c]:v})} placeholder="Ej. Juan Pérez"/>
+            </div>
+          )}
+          {tabS === 'DIRECCIÓN' && (
+            <TabDireccion form={sForm} onChange={(c,v)=>setSForm({...sForm, [c]:v})} errors={{}} onVerificar={()=>{}} onReactivar={()=>{}} />
+          )}
+          {tabS === 'FOTOS' && (
+            <TabFotos form={sForm} onChange={(c,v)=>setSForm({...sForm, [c]:v})}/>
+          )}
+          <div style={{textAlign:'center', marginTop:20}}>
+            <button className="btn" style={{background:'var(--brown-dark)', color:'white', padding:'8px 32px'}} onClick={(e)=>{
+              e.preventDefault();
+              let arr = [...(form.sucursales||[])];
+              if(editIdx >= 0) arr[editIdx] = sForm;
+              else arr.push(sForm);
+              onChange('sucursales', arr);
+              setModalS(false);
+              setTabS('DATOS PERSONALES');
+            }}>GUARDAR</button>
+          </div>
+        </Modal>
+      )}
+
+      {modalC && (
+        <Modal title="AGREGAR CONTACTO" onClose={()=>setModalC(false)}>
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:16}}>
+            <FInput campo="nombre_contacto" label="Nombre de Contacto" value={cForm.nombre_contacto} onChange={(c,v)=>setCForm({...cForm, [c]:v})} placeholder="Ej. Juan Pérez"/>
+            <FInput campo="representante_legal" label="Representante Legal" value={cForm.representante_legal} onChange={(c,v)=>setCForm({...cForm, [c]:v})} placeholder="999 000 0000"/>
+            <FInput campo="correo" label="Correo" value={cForm.correo} onChange={(c,v)=>setCForm({...cForm, [c]:v})} placeholder="correo@ejemplo.com"/>
+            <FInput campo="telefono" label="Teléfono" value={cForm.telefono} onChange={(c,v)=>setCForm({...cForm, [c]:v})} placeholder="999 000 0000"/>
+          </div>
+          <div style={{textAlign:'center', marginTop:20}}>
+            <button className="btn" style={{background:'var(--brown-dark)', color:'white', padding:'8px 32px'}} onClick={(e)=>{
+              e.preventDefault();
+              let arr = [...(form.contactos||[])];
+              if(editIdx >= 0) arr[editIdx] = cForm;
+              else arr.push(cForm);
+              onChange('contactos', arr);
+              setModalC(false);
+            }}>GUARDAR</button>
+          </div>
+        </Modal>
+      )}
     </div>
   )
 }
@@ -590,7 +685,6 @@ export default function Prospects(){
     if(!email) e.email='Requerido'
     else if(!EMAIL_RE.test(email)) e.email='Email inválido'
     if(!form.tipoInmueble) e.tipoInmueble='Requerido'
-    if(!form.periodicidadPago) e.periodicidadPago='Requerido'
     return e
   }
 
@@ -675,7 +769,7 @@ export default function Prospects(){
           <table>
             <thead><tr>
               <th>Empresa / RFC</th><th>Contacto</th><th>Inmueble</th>
-              <th>Periodicidad</th><th>Estatus</th><th>Monto</th><th>Acciones</th>
+              <th>Tipo</th><th>Estatus</th><th>Acciones</th>
             </tr></thead>
             <tbody>
               {filtrados.map(p=>(
@@ -683,14 +777,17 @@ export default function Prospects(){
                   <td><div style={{fontWeight:600}}>{p.nombre}</div><div className="text-xs text-muted">{p.rfc||p.email}</div></td>
                   <td><div>{p.contacto}</div><div className="text-xs text-muted">{p.telefono}</div></td>
                   <td className="text-muted">{p.tipoInmueble||'—'}</td>
-                  <td className="text-muted">{p.periodicidadPago||'—'}</td>
+                  <td className="text-muted">{p.tipoPersona||'Moral'}</td>
                   <td><span className={`badge ${getBadge(p.estatus)}`}>{p.estatus}</span></td>
-                  <td style={{fontWeight:700,color:'var(--accent)'}}>{formatMXN(p.monto)}</td>
                   <td>
                     <div className="flex gap-2">
                       <button className="btn btn-ghost btn-sm" onClick={()=>navigate(`/prospectos/${p.id}`)}>Ver</button>
-                      <button className="btn btn-ghost btn-sm" onClick={()=>{
-                        const p2={...EMPTY,...p, fecha: p.fecha ? String(p.fecha).split('T')[0] : ''};
+                      <button className="btn btn-ghost btn-sm" onClick={async ()=>{
+                        const resS = await fetch(`http://localhost:5000/api/prospectos/${p.id}/sucursales`);
+                        const sucursales = await resS.json();
+                        const resC = await fetch(`http://localhost:5000/api/prospectos/${p.id}/contactos`);
+                        const contactos = await resC.json();
+                        const p2={...EMPTY,...p, sucursales, contactos};
                         setForm(p2);setSelected(p);setTab('Datos Personales');setModal('editar');
                       }}>Editar</button>
                       <button className="btn btn-danger btn-sm" onClick={async () => {
@@ -703,7 +800,7 @@ export default function Prospects(){
                   </td>
                 </tr>
               ))}
-              {filtrados.length===0&&<tr><td colSpan={7} style={{textAlign:'center',padding:40,color:'var(--text3)'}}>
+              {filtrados.length===0&&<tr><td colSpan={6} style={{textAlign:'center',padding:40,color:'var(--text3)'}}>
                 {filtro||estatusFiltro?'Sin resultados':'No hay prospectos registrados'}
               </td></tr>}
             </tbody>

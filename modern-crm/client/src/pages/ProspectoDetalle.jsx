@@ -154,12 +154,10 @@ export default function ProspectoDetalle(){
             <Field label="Contacto" value={p.contacto}/>
             <Field label="Teléfono" value={p.telefono}/>
             <Field label="Email" value={p.email}/>
-            <Field label="Fecha de Alta" value={p.fecha}/>
-            <Field label="Servicio" value={p.servicio}/>
-            <Field label="Monto Estimado" value={formatMXN(p.monto)}/>
+            <Field label="Tipo de Persona" value={p.tipoPersona}/>
+            <Field label="Tiene Sucursales" value={p.tieneSucursales}/>
             <Field label="Días Disponibles" value={p.dias_disponibles}/>
             <Field label="Horario" value={p.horario}/>
-            <Field label="Capacidad Disponible" value={p.capacidad_disponible}/>
           </div>
           {p.notas&&(
             <div style={{marginTop:8,padding:'12px',background:'var(--bg2)',borderRadius:8,fontSize:13,color:'var(--text2)'}}>
@@ -269,9 +267,17 @@ export default function ProspectoDetalle(){
                     <div key={b.Borrador_ID} style={{padding:16,border:'1px solid var(--border)',borderRadius:8}}>
                       <div style={{fontWeight:600,marginBottom:4}}>Borrador del {new Date(b.Fecha_Creacion).toLocaleString()}</div>
                       <div style={{fontSize:13,color:'var(--text2)',marginBottom:8}}>Total: {formatMXN(d.total)} | {d.items?.length || 0} servicios</div>
-                      <button className="btn btn-sm btn-primary" onClick={() => {
-                        navigate('/cotizacion', { state: { prospecto_id: p.id, borrador: d } })
-                      }}>Continuar cotización</button>
+                      <div style={{display:'flex', gap: 8}}>
+                        <button className="btn btn-sm btn-primary" onClick={() => {
+                          navigate('/cotizacion', { state: { prospecto_id: p.id, borrador: d } })
+                        }}>Continuar cotización</button>
+                        <button className="btn btn-sm btn-danger" onClick={async () => {
+                          if(confirm('¿Eliminar este borrador?')){
+                            await fetch(`http://localhost:5000/api/borradores/${b.Borrador_ID}`, {method: 'DELETE'})
+                            setBorradores(borradores.filter(x => x.Borrador_ID !== b.Borrador_ID))
+                          }
+                        }}>Eliminar</button>
+                      </div>
                     </div>
                   )
                 })}

@@ -80,14 +80,13 @@ app.get('/api/prospectos', async (req, res) => {
       SELECT p.Prospecto_ID as id, e.Nombre_Empresa as nombre, e.RFC as rfc,
         p.Nombre_Prospecto as contacto, p.Telefono as telefono, p.Correo as email,
         p.Estatus as estatus, p.Tipo_Inmueble as tipoInmueble,
-        p.Periodicidad_Pago as periodicidadPago, p.Monto as monto,
-        p.Servicio as servicio, p.Notas as notas,
+        p.Tipo_Persona as tipoPersona, p.Tiene_Sucursales as tieneSucursales, p.Notas as notas,
         p.Calle as calle, p.Num_Ext as numExt, p.Num_Int as numInt,
         p.Colonia as colonia, p.Municipio as municipio, p.CP as cp,
         p.Estado as estado, p.Lat as lat, p.Lng as lng,
         p.Coordenadas_Manuales as coordenadas_manuales,
         p.Dias_Disponibles as dias_disponibles, p.Horario as horario,
-        p.Capacidad_Disponible as capacidad_disponible, p.Ruta as ruta,
+        p.Ruta as ruta,
         p.Foto_Comprobante as foto_comprobante, p.Foto_Fachada as foto_fachada,
         p.Fecha_Creacion as fecha
       FROM crm_prospectos p
@@ -108,11 +107,11 @@ app.post('/api/prospectos', async (req, res) => {
   try {
     const {
       nombre, rfc, contacto, telefono, email, estatus,
-      tipoInmueble, periodicidadPago, monto, servicio, notas,
+      tipoInmueble, tipoPersona, tieneSucursales, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
       lat, lng, coordenadas_manuales, 
-      dias_disponibles, horario, capacidad_disponible, ruta,
-      foto_comprobante, foto_fachada
+      dias_disponibles, horario, ruta,
+      foto_comprobante, foto_fachada, sucursales, contactos
     } = req.body;
 
     let empresaId = 1;
@@ -136,30 +135,45 @@ app.post('/api/prospectos', async (req, res) => {
       INSERT INTO crm_prospectos
         (Empresa_ID, Propietario_ID, Fuente_ID,
          Nombre_Prospecto, Nombre_Comercial_Empresa, Correo, Telefono, Estatus,
-         Tipo_Inmueble, Periodicidad_Pago, Monto, Servicio, Notas,
+         Tipo_Inmueble, Tipo_Persona, Tiene_Sucursales, Notas,
          Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado,
          Lat, Lng, Coordenadas_Manuales,
-         Dias_Disponibles, Horario, Capacidad_Disponible, Ruta,
+         Dias_Disponibles, Horario, Ruta,
          Foto_Comprobante, Foto_Fachada)
-      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         empresaId,
         (contacto||nombre||'').trim(),
         (nombre||contacto||'').trim(),
         email||null, telefono||null, estatus||'Nuevo',
-        tipoInmueble||null, periodicidadPago||null, parseFloat(monto)||0,
-        servicio||null, notas||null,
+        tipoInmueble||null, tipoPersona||'Moral', tieneSucursales||'No', notas||null,
         calle||null, numExt||null, numInt||null,
         colonia||null, municipio||null, cp||null, estado||null,
         lat ? parseFloat(lat) : null,
         lng ? parseFloat(lng) : null,
         coordenadas_manuales ? 1 : 0,
-        dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null,
+        dias_disponibles||null, horario||null, ruta||null,
         foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null,
         foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null
       ]
     );
-    res.json({ success:true, id: result.insertId });
+    const prospectoId = result.insertId;
+    if(tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
+      const vals = sucursales.map(s => [
+        prospectoId, s.nombre_sucursal, s.correo_electronico, s.telefono_sucursal, s.nombre_responsable,
+        s.calle||null, s.numExt||null, s.numInt||null, s.colonia||null, s.municipio||null, s.cp||null, s.estado||null,
+        s.lat ? parseFloat(s.lat) : null, s.lng ? parseFloat(s.lng) : null,
+        s.foto_comprobante && s.foto_comprobante.length > 50 ? Buffer.from(s.foto_comprobante, 'base64') : null,
+        s.foto_fachada && s.foto_fachada.length > 50 ? Buffer.from(s.foto_fachada, 'base64') : null
+      ]);
+      await pool.query(`INSERT INTO crm_prospecto_sucursales (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable, Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada) VALUES ?`, [vals]);
+    }
+    if(Array.isArray(contactos) && contactos.length > 0) {
+      const vals = contactos.map(c => [prospectoId, c.nombre_contacto, c.correo, c.representante_legal, c.telefono]);
+      await pool.query(`INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`, [vals]);
+    }
+
+    res.json({ success:true, id: prospectoId });
   } catch(e){ console.error('POST prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
 });
 
@@ -169,37 +183,36 @@ app.put('/api/prospectos/:id', async (req, res) => {
     const { id } = req.params;
     const {
       nombre, rfc, contacto, telefono, email, estatus,
-      tipoInmueble, periodicidadPago, monto, servicio, notas,
+      tipoInmueble, tipoPersona, tieneSucursales, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
       lat, lng, coordenadas_manuales, 
-      dias_disponibles, horario, capacidad_disponible, ruta,
-      foto_comprobante, foto_fachada
+      dias_disponibles, horario, ruta,
+      foto_comprobante, foto_fachada, sucursales, contactos
     } = req.body;
 
     const updates = [
       (contacto||nombre||'').trim(),
       (nombre||contacto||'').trim(),
       email||null, telefono||null, estatus||'Nuevo',
-      tipoInmueble||null, periodicidadPago||null, parseFloat(monto)||0,
-      servicio||null, notas||null,
+      tipoInmueble||null, tipoPersona||'Moral', tieneSucursales||'No', notas||null,
       calle||null, numExt||null, numInt||null,
       colonia||null, municipio||null, cp||null, estado||null,
       lat ? parseFloat(lat) : null,
       lng ? parseFloat(lng) : null,
       coordenadas_manuales ? 1 : 0,
-      dias_disponibles||null, horario||null, capacidad_disponible||null, ruta||null
+      dias_disponibles||null, horario||null, ruta||null
     ];
 
     let sql = `
       UPDATE crm_prospectos SET
         Nombre_Prospecto=?, Nombre_Comercial_Empresa=?,
         Correo=?, Telefono=?, Estatus=?,
-        Tipo_Inmueble=?, Periodicidad_Pago=?, Monto=?,
-        Servicio=?, Notas=?,
+        Tipo_Inmueble=?, Tipo_Persona=?, Tiene_Sucursales=?,
+        Notas=?,
         Calle=?, Num_Ext=?, Num_Int=?,
         Colonia=?, Municipio=?, CP=?, Estado=?,
         Lat=?, Lng=?, Coordenadas_Manuales=?,
-        Dias_Disponibles=?, Horario=?, Capacidad_Disponible=?, Ruta=?`;
+        Dias_Disponibles=?, Horario=?, Ruta=?`;
 
     if (foto_comprobante !== undefined) {
       sql += `, Foto_Comprobante=?`;
@@ -226,6 +239,24 @@ app.put('/api/prospectos/:id', async (req, res) => {
         );
       }
     }
+
+    await pool.query(`DELETE FROM crm_prospecto_sucursales WHERE Prospecto_ID=?`, [id]);
+    if(tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
+      const vals = sucursales.map(s => [
+        id, s.nombre_sucursal, s.correo_electronico, s.telefono_sucursal, s.nombre_responsable,
+        s.calle||null, s.numExt||null, s.numInt||null, s.colonia||null, s.municipio||null, s.cp||null, s.estado||null,
+        s.lat ? parseFloat(s.lat) : null, s.lng ? parseFloat(s.lng) : null,
+        s.foto_comprobante && s.foto_comprobante.length > 50 ? Buffer.from(s.foto_comprobante, 'base64') : null,
+        s.foto_fachada && s.foto_fachada.length > 50 ? Buffer.from(s.foto_fachada, 'base64') : null
+      ]);
+      await pool.query(`INSERT INTO crm_prospecto_sucursales (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable, Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada) VALUES ?`, [vals]);
+    }
+
+    await pool.query(`DELETE FROM crm_prospecto_contactos WHERE Prospecto_ID=?`, [id]);
+    if(Array.isArray(contactos) && contactos.length > 0) {
+      const vals = contactos.map(c => [id, c.nombre_contacto, c.correo, c.representante_legal, c.telefono]);
+      await pool.query(`INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`, [vals]);
+    }
     res.json({ success:true });
   } catch(e){ console.error('PUT prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
 });
@@ -248,6 +279,32 @@ app.get('/api/prospectos/:id/foto/:tipo', async (req, res) => {
     console.error('GET foto:', e);
     res.status(500).json({ error: e.message });
   }
+});
+
+// ─── SUCURSALES Y CONTACTOS (GET) ─────────────────────────────
+app.get('/api/prospectos/:id/sucursales', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT 
+      Sucursal_ID as id, Nombre_Sucursal as nombre_sucursal, Correo_Electronico as correo_electronico, 
+      Telefono_Sucursal as telefono_sucursal, Nombre_Responsable as nombre_responsable,
+      Calle as calle, Num_Ext as numExt, Num_Int as numInt, Colonia as colonia, 
+      Municipio as municipio, CP as cp, Estado as estado, Lat as lat, Lng as lng,
+      Foto_Comprobante as foto_comprobante, Foto_Fachada as foto_fachada
+    FROM crm_prospecto_sucursales WHERE Prospecto_ID=?`, [req.params.id]);
+    const rowsWithImages = rows.map(r => ({
+      ...r,
+      foto_comprobante: r.foto_comprobante ? Buffer.from(r.foto_comprobante).toString('base64') : null,
+      foto_fachada: r.foto_fachada ? Buffer.from(r.foto_fachada).toString('base64') : null
+    }));
+    res.json(rowsWithImages);
+  } catch(e) { console.error('GET sucursales:',e); res.status(500).json({error:e.message}); }
+});
+
+app.get('/api/prospectos/:id/contactos', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`SELECT Contacto_ID as id, Nombre_Contacto as nombre_contacto, Correo as correo, Representante_Legal as representante_legal, Telefono as telefono FROM crm_prospecto_contactos WHERE Prospecto_ID=?`, [req.params.id]);
+    res.json(rows);
+  } catch(e) { console.error('GET contactos:',e); res.status(500).json({error:e.message}); }
 });
 
 // ─── PROSPECTOS DELETE ────────────────────────────────────────
@@ -408,6 +465,13 @@ app.post('/api/prospectos/:id/borradores', async (req, res) => {
     );
     res.json({ success:true, id: result.insertId });
   } catch(e) { console.error('POST borradores:',e); res.status(500).json({error:e.message}); }
+});
+
+app.delete('/api/borradores/:id', async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM crm_cotizaciones_borradores WHERE Borrador_ID=?`, [req.params.id]);
+    res.json({ success:true });
+  } catch(e) { console.error('DELETE borrador:',e); res.status(500).json({error:e.message}); }
 });
 
 // ─────────────────────────────────────────────────────────────

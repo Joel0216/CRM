@@ -20,6 +20,8 @@ DROP TABLE IF EXISTS `crm_tratos`;
 DROP TABLE IF EXISTS `oportunidades_negocio`;
 DROP TABLE IF EXISTS `prospecto_necesidades`;
 DROP TABLE IF EXISTS `interacciones`;
+DROP TABLE IF EXISTS `crm_prospecto_sucursales`;
+DROP TABLE IF EXISTS `crm_prospecto_contactos`;
 DROP TABLE IF EXISTS `crm_prospectos`;
 DROP TABLE IF EXISTS `prospectos`;
 DROP TABLE IF EXISTS `clientes`;
@@ -192,14 +194,12 @@ CREATE TABLE `crm_prospectos` (
   `Nombre_Comercial_Empresa` varchar(150) NOT NULL,
   `Correo`                  varchar(150)  DEFAULT NULL,
   `Telefono`                varchar(30)   DEFAULT NULL,
-  -- Clasificación (varchar en lugar de enum para flexibilidad)
+  -- Clasificación
+  `Tipo_Persona`            varchar(50)   DEFAULT 'Moral',
+  `Tiene_Sucursales`        varchar(20)   DEFAULT 'No',
   `Estatus`                 varchar(50)   NOT NULL DEFAULT 'Nuevo',
   `Tipo_Inmueble`           varchar(50)   DEFAULT NULL
                             COMMENT 'Casa / Condominio Público / Condominio Privado / Oficinas / Local',
-  `Periodicidad_Pago`       varchar(20)   DEFAULT NULL
-                            COMMENT 'Mensual / Trimestral / Semestral / Anual',
-  `Monto`                   decimal(12,2) NOT NULL DEFAULT 0.00,
-  `Servicio`                varchar(255)  DEFAULT NULL,
   `Notas`                   text          DEFAULT NULL,
   -- Dirección
   `Calle`                   varchar(150)  DEFAULT NULL,
@@ -216,7 +216,6 @@ CREATE TABLE `crm_prospectos` (
   -- Operaciones
   `Dias_Disponibles`        varchar(150)  DEFAULT NULL,
   `Horario`                 varchar(100)  DEFAULT NULL,
-  `Capacidad_Disponible`    varchar(100)  DEFAULT NULL,
   `Ruta`                    varchar(100)  DEFAULT NULL,
   -- Fotos
   `Foto_Comprobante`        LONGBLOB      DEFAULT NULL,
@@ -233,6 +232,40 @@ CREATE TABLE `crm_prospectos` (
     FOREIGN KEY (`Fuente_ID`) REFERENCES `crm_fuentes_prospecto` (`Fuente_ID`) ON DELETE SET NULL,
   CONSTRAINT `FK_CRM_Prospectos_Propietario`
     FOREIGN KEY (`Propietario_ID`) REFERENCES `usuarios` (`Usuario_ID`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ── 6.1 SUCURSALES Y CONTACTOS ────────────────────────────────
+CREATE TABLE `crm_prospecto_sucursales` (
+  `Sucursal_ID` INT AUTO_INCREMENT PRIMARY KEY,
+  `Prospecto_ID` INT NOT NULL,
+  `Nombre_Sucursal` VARCHAR(150) NOT NULL,
+  `Correo_Electronico` VARCHAR(150) NOT NULL,
+  `Telefono_Sucursal` VARCHAR(50) NOT NULL,
+  `Nombre_Responsable` VARCHAR(150) NOT NULL,
+  -- Dirección
+  `Calle` VARCHAR(150) DEFAULT NULL,
+  `Num_Ext` VARCHAR(20) DEFAULT NULL,
+  `Num_Int` VARCHAR(20) DEFAULT NULL,
+  `Colonia` VARCHAR(100) DEFAULT NULL,
+  `Municipio` VARCHAR(100) DEFAULT NULL,
+  `CP` VARCHAR(10) DEFAULT NULL,
+  `Estado` VARCHAR(100) DEFAULT NULL,
+  `Lat` DECIMAL(10,8) DEFAULT NULL,
+  `Lng` DECIMAL(11,8) DEFAULT NULL,
+  -- Fotos
+  `Foto_Comprobante` LONGBLOB DEFAULT NULL,
+  `Foto_Fachada` LONGBLOB DEFAULT NULL,
+  FOREIGN KEY (`Prospecto_ID`) REFERENCES `crm_prospectos`(`Prospecto_ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `crm_prospecto_contactos` (
+  `Contacto_ID` INT AUTO_INCREMENT PRIMARY KEY,
+  `Prospecto_ID` INT NOT NULL,
+  `Nombre_Contacto` VARCHAR(150) NOT NULL,
+  `Correo` VARCHAR(150),
+  `Representante_Legal` VARCHAR(150),
+  `Telefono` VARCHAR(50),
+  FOREIGN KEY (`Prospecto_ID`) REFERENCES `crm_prospectos`(`Prospecto_ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ── 7. ARCHIVOS (BLOB) por prospecto ──────────────────────────
