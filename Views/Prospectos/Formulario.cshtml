@@ -1,0 +1,218 @@
+@model CRMCiclo.Models.ProspectoModel
+@{
+    ViewBag.Title = Model.Prospecto_ID == 0 ? "Nuevo Prospecto" : "Editar Prospecto";
+    bool esNuevo  = Model.Prospecto_ID == 0;
+}
+
+@using (Html.BeginForm("Guardar", "Prospectos", FormMethod.Post,
+        new { id = "frmProspecto", novalidate = "novalidate" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.Prospecto_ID)
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 fw-bold">
+            <i class="fas fa-user-tie me-2" style="color:#9E652E"></i>
+            @(esNuevo ? "Nuevo Prospecto" : "Editar Prospecto")
+        </h5>
+        <a href="@Url.Action("Index","Prospectos")" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Regresar
+        </a>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN 1 — DATOS DE IDENTIFICACIÓN
+    ══════════════════════════════════════════ -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header" style="background:#9E652E;color:#fff;">
+            <i class="fas fa-id-card me-2"></i> Datos de Identificación
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+
+                <!-- Empresa (SELECT — se llena con JS desde /Empresas/ObtenerLista) -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Empresa <span class="text-danger">*</span>
+                    </label>
+                    <select id="Empresa_ID" name="Empresa_ID"
+                            class="form-select"
+                            required>
+                        <option value="0">-- Seleccione empresa --</option>
+                        <!-- Poblada dinámicamente por JS o aquí con SelectList -->
+                    </select>
+                </div>
+
+                <!-- Nombre del Prospecto -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Nombre del Prospecto <span class="text-danger">*</span>
+                    </label>
+                    @Html.TextBoxFor(m => m.Nombre_Prospecto,
+                        new { @class = "form-control", placeholder = "Nombre completo del contacto" })
+                </div>
+
+                <!-- Nombre Comercial -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">
+                        Nombre Comercial de la Empresa <span class="text-danger">*</span>
+                    </label>
+                    @Html.TextBoxFor(m => m.Nombre_Comercial_Empresa,
+                        new { @class = "form-control", placeholder = "Ej. Constructora ABC S.A." })
+                </div>
+
+                <!-- Correo -->
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Correo Electrónico</label>
+                    @Html.TextBoxFor(m => m.Correo,
+                        new { @class = "form-control", placeholder = "usuario@dominio.com", type = "email" })
+                    <small class="text-muted">Opcional. Si se captura debe ser válido.</small>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Teléfono</label>
+                    @Html.TextBoxFor(m => m.Telefono,
+                        new { @class = "form-control", placeholder = "(999) 123-4567" })
+                    <small class="text-muted">7-20 dígitos, guiones y paréntesis permitidos.</small>
+                </div>
+
+                <!-- Tipo Persona -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tipo de Persona</label>
+                    @Html.DropDownListFor(m => m.Tipo_Persona,
+                        new SelectList(new[] { "Moral", "Física" }, Model.Tipo_Persona),
+                        new { @class = "form-select" })
+                </div>
+
+                <!-- Estatus -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        Estatus <span class="text-danger">*</span>
+                    </label>
+                    @Html.DropDownListFor(m => m.Estatus,
+                        new SelectList(new[] {
+                            "Nuevo","Contactado","Calificado",
+                            "Propuesta","Negociación","Ganado","Perdido"
+                        }, Model.Estatus),
+                        "-- Seleccione estatus --",
+                        new { @class = "form-select" })
+                </div>
+
+                <!-- Tipo Inmueble -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tipo de Inmueble</label>
+                    @Html.DropDownListFor(m => m.Tipo_Inmueble,
+                        new SelectList(new[] {
+                            "Casa","Oficinas","Local",
+                            "Condominio Público","Condominio Privado"
+                        }, Model.Tipo_Inmueble),
+                        "-- Seleccione tipo --",
+                        new { @class = "form-select" })
+                </div>
+
+                <!-- Tiene Sucursales -->
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">¿Tiene Sucursales?</label>
+                    @Html.DropDownListFor(m => m.Tiene_Sucursales,
+                        new SelectList(new[] { "No", "Sí" }, Model.Tiene_Sucursales),
+                        new { @class = "form-select" })
+                </div>
+
+                <!-- Notas -->
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Notas</label>
+                    @Html.TextAreaFor(m => m.Notas,
+                        new { @class = "form-control", rows = 3, placeholder = "Observaciones adicionales..." })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN 2 — DIRECCIÓN
+    ══════════════════════════════════════════ -->
+    <div class="card mb-3 shadow-sm">
+        <div class="card-header" style="background:#7A4E22;color:#fff;">
+            <i class="fas fa-map-marker-alt me-2"></i> Dirección
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Calle</label>
+                    @Html.TextBoxFor(m => m.Calle, new { @class = "form-control", placeholder = "Nombre de la calle" })
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Núm. Exterior</label>
+                    @Html.TextBoxFor(m => m.Num_Ext, new { @class = "form-control", placeholder = "100" })
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Núm. Interior</label>
+                    @Html.TextBoxFor(m => m.Num_Int, new { @class = "form-control", placeholder = "A" })
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Colonia</label>
+                    @Html.TextBoxFor(m => m.Colonia, new { @class = "form-control" })
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Municipio</label>
+                    @Html.TextBoxFor(m => m.Municipio, new { @class = "form-control" })
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">C.P.</label>
+                    @Html.TextBoxFor(m => m.CP,
+                        new { @class = "form-control", placeholder = "97000", maxlength = "5" })
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Estado</label>
+                    @Html.TextBoxFor(m => m.Estado, new { @class = "form-control", placeholder = "Yucatán" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SECCIÓN 3 — OPERACIONES / SERVICIO
+    ══════════════════════════════════════════ -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header" style="background:#5C3819;color:#fff;">
+            <i class="fas fa-cogs me-2"></i> Operaciones
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Días Disponibles</label>
+                    @Html.TextBoxFor(m => m.Dias_Disponibles,
+                        new { @class = "form-control", placeholder = "Lunes, Miércoles, Viernes" })
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Horario</label>
+                    @Html.TextBoxFor(m => m.Horario,
+                        new { @class = "form-control", placeholder = "08:00 - 17:00" })
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Ruta</label>
+                    @Html.TextBoxFor(m => m.Ruta,
+                        new { @class = "form-control", placeholder = "Ruta Norte" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="d-flex justify-content-end gap-2">
+        <a href="@Url.Action("Index","Prospectos")"
+           class="btn btn-outline-secondary px-4">
+            <i class="fas fa-times me-1"></i> Cancelar
+        </a>
+        <button type="submit" id="btnGuardar" class="btn px-4"
+                style="background:#9E652E;color:#fff;border:none;">
+            <i class="fas fa-save me-1"></i>
+            @(esNuevo ? "Registrar Prospecto" : "Guardar Cambios")
+        </button>
+    </div>
+}
+
+@section scripts {
+    <script src="@Url.Content("~/Scripts/Prospectos/prospectos.js")"></script>
+}

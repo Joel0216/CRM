@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -41,6 +41,10 @@
                 <a href="@Url.Action("Index", "Home")"
                    class="nav-link @(ViewBag.ActiveMenu == "Dashboard" ? "active" : "")">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="@Url.Action("Index", "Prospectos")"
+                   class="nav-link @(ViewBag.ActiveMenu == "Prospectos" ? "active" : "")">
+                    <i class="fas fa-users"></i> Prospectos
                 </a>
                 <a href="@Url.Action("Certificados", "Home")"
                    class="nav-link @(ViewBag.ActiveMenu == "Certificados" ? "active" : "")">

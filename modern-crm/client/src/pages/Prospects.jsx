@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Swal from 'sweetalert2'
 import { useNavigate } from 'react-router-dom'
 import Layout from './Layout'
 import MapView from './MapView'
@@ -8,7 +9,9 @@ const ESTATUSES = ['Nuevo','En seguimiento','Cotizado','Adeudo','Inactivo']
 const TIPOS_BASE = ['Casa','Condominio','Oficinas','Local']
 const PERIODICIDADES = ['Mensual','Trimestral','Semestral','Anual']
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_RE   = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const TELEFONO_RE = /^\+?[\d\s\-\(\)]{7,20}$/
+const CP_RE       = /^\d{5}$/
 
 const EMPTY = {
   nombre:'',rfc:'',contacto:'',telefono:'',email:'',
@@ -660,7 +663,18 @@ export default function Prospects(){
       }
     } catch(e) { console.error('Error fetching prospectos', e) }
   }
-  useEffect(()=>{cargar()},[])
+  useEffect(()=>{ cargar() },[])
+
+  // ── Bloquear scroll del body cuando hay modal abierto ──
+  useEffect(() => {
+    if (modal) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    // Limpiar al desmontar el componente
+    return () => document.body.classList.remove('modal-open')
+  }, [modal])
 
   const filtrados=lista.filter(p=>{
     const q=filtro.toLowerCase()
@@ -675,40 +689,92 @@ export default function Prospects(){
 
   const cerrar=()=>{setModal(null);setSelected(null);setForm(EMPTY);setTab('Datos Personales');setErrors({});setAddrAlert(null)}
 
-  const validar=()=>{
-    const e={}
-    if(!(form.nombre||'').trim()) e.nombre='Requerido'
-    const tel=(form.telefono||'').replace(/\D/g,'')
-    if(!tel) e.telefono='Requerido'
-    else if(tel.length!==10) e.telefono='Debe tener 10 dígitos'
-    const email=(form.email||'').trim()
-    if(!email) e.email='Requerido'
-    else if(!EMAIL_RE.test(email)) e.email='Email inválido'
-    if(!form.tipoInmueble) e.tipoInmueble='Requerido'
+  // ── Validaciones completas por tipo de campo (espejo del SP MySQL) ──
+  const validar = () => {
+    const e = {}
+
+    // ── Campos NOT NULL en crm_prospectos ────────────────────────
+    // Nombre (Razón Social) → VARCHAR(150) NOT NULL
+    const nombre = (form.nombre || '').trim()
+    if (!nombre) {
+      e.nombre = 'La Razón Social es obligatoria.'
+    } else if (nombre.length > 150) {
+      e.nombre = 'Máximo 150 caracteres.'
+    }
+
+    // Teléfono → VARCHAR(30) NOT NULL en la práctica del negocio
+    const tel = (form.telefono || '').trim()
+    if (!tel) {
+      e.telefono = 'El Teléfono es obligatorio.'
+    } else if (!TELEFONO_RE.test(tel)) {
+      e.telefono = 'Solo dígitos, espacios, guiones y paréntesis (7-20 caracteres).'
+    } else if (tel.length > 30) {
+      e.telefono = 'Máximo 30 caracteres.'
+    }
+
+    // Email → VARCHAR(150) NOT NULL en el negocio (req en FInput)
+    const email = (form.email || '').trim()
+    if (!email) {
+      e.email = 'El correo electrónico es obligatorio.'
+    } else if (!EMAIL_RE.test(email)) {
+      e.email = 'Formato inválido. Ej: usuario@dominio.com'
+    } else if (email.length > 150) {
+      e.email = 'Máximo 150 caracteres.'
+    }
+
+    // Tipo de Inmueble → NOT NULL en el flujo de negocio
+    if (!form.tipoInmueble) {
+      e.tipoInmueble = 'Selecciona un Tipo de Inmueble.'
+    }
+
+    // ── Campos opcionales con formato ────────────────────────────
+    // RFC → VARCHAR(20), opcional
+    const rfc = (form.rfc || '').trim()
+    if (rfc && rfc.length > 20) {
+      e.rfc = 'El RFC no puede exceder 20 caracteres.'
+    }
+
+    // Contacto → VARCHAR(150), opcional
+    const contacto = (form.contacto || '').trim()
+    if (contacto && contacto.length > 150) {
+      e.contacto = 'Máximo 150 caracteres.'
+    }
+
     return e
   }
 
-  const verificarDireccion=()=>{
-    const dirErrors={}
-    if(!(form.calle||'').trim()) dirErrors.calle='Requerido'
-    if(!(form.numExt||'').trim()) dirErrors.numExt='Requerido'
-    if(!(form.colonia||'').trim()) dirErrors.colonia='Requerido'
-    if(!(form.municipio||'').trim()) dirErrors.municipio='Requerido'
-    if(!(form.cp||'').trim()) dirErrors.cp='Requerido'
-    if(Object.keys(dirErrors).length){setErrors(dirErrors);return}
-    const match=lista.find(p=>
-      p.id!==(selected?.id)&&
-      (p.calle||'').toLowerCase()===(form.calle||'').toLowerCase()&&
-      (p.numExt||'').toLowerCase()===(form.numExt||'').toLowerCase()&&
-      (p.colonia||'').toLowerCase()===(form.colonia||'').toLowerCase()
+  // ── Validaciones de dirección ─────────────────────────────────
+  const validarDireccion = () => {
+    const e = {}
+    if (!(form.calle   || '').trim()) e.calle    = 'Requerido'
+    if (!(form.numExt  || '').trim()) e.numExt   = 'Requerido'
+    if (!(form.colonia || '').trim()) e.colonia  = 'Requerido'
+    if (!(form.municipio||'').trim()) e.municipio= 'Requerido'
+    const cp = (form.cp || '').trim()
+    if (!cp) {
+      e.cp = 'Requerido'
+    } else if (!CP_RE.test(cp)) {
+      e.cp = 'El CP debe tener 5 dígitos numéricos.'
+    }
+    return e
+  }
+
+  const verificarDireccion = () => {
+    const dirErrors = validarDireccion()
+    if (Object.keys(dirErrors).length) { setErrors(prev => ({...prev, ...dirErrors})); return }
+    const match = lista.find(p =>
+      p.id !== (selected?.id) &&
+      (p.calle    || '').toLowerCase() === (form.calle    || '').toLowerCase() &&
+      (p.numExt   || '').toLowerCase() === (form.numExt   || '').toLowerCase() &&
+      (p.colonia  || '').toLowerCase() === (form.colonia  || '').toLowerCase()
     )
-    if(!match){setAddrAlert({type:'success',msg:'✓ Sin adeudo detectado. Dirección disponible.'});return}
-    if(match.adeudo||match.estatus==='Adeudo')
-      setAddrAlert({type:'error',msg:'⚠ Este domicilio tiene un adeudo pendiente. Contactar a cobranza.',match})
-    else if(match.estatus==='Inactivo')
-      setAddrAlert({type:'warn',msg:'Este domicilio está dado de baja. ¿Deseas reactivar el servicio?',match,reactivar:true})
+    if (!match) { setAddrAlert({ type:'success', msg:'✓ Sin adeudo detectado. Dirección disponible.' }); return }
+    if (match.adeudo || match.estatus === 'Adeudo')
+      setAddrAlert({ type:'error', msg:'⚠ Este domicilio tiene un adeudo pendiente. Contactar a cobranza.', match })
+    else if (match.estatus === 'Inactivo')
+      setAddrAlert({ type:'warn', msg:'Este domicilio está dado de baja. ¿Deseas reactivar el servicio?', match, reactivar:true })
     else
-      setAddrAlert({type:'info',msg:'Este domicilio ya cuenta con servicio activo.'})
+      setAddrAlert({ type:'info', msg:'Este domicilio ya cuenta con servicio activo.' })
   }
 
   const handleReactivar=()=>{
@@ -718,27 +784,95 @@ export default function Prospects(){
   }
 
   const handleGuardar = async () => {
+    // 1. Validar campos
     const e = validar()
-    if (Object.keys(e).length) { setErrors(e); return }
-    const data = { ...form, fecha: form.fecha || new Date().toISOString().split('T')[0] }
+    if (Object.keys(e).length) {
+      setErrors(e)
+      // ⚠️ SweetAlert de ADVERTENCIA con lista de errores
+      const lista = Object.values(e)
+        .map(msg => `<li style="margin-bottom:4px">${msg}</li>`)
+        .join('')
+      Swal.fire({
+        icon: 'warning',
+        title: `${Object.keys(e).length} campo${Object.keys(e).length > 1 ? 's' : ''} con error`,
+        html: `<ul style="text-align:left;margin:8px 0 0;padding-left:20px;font-size:0.88rem">${lista}</ul>`,
+        confirmButtonText: 'Corregir',
+        confirmButtonColor: '#E65100'
+      })
+      return
+    }
 
+    // 2. Confirmación antes de guardar
+    const esNuevo = modal === 'crear'
+    const confirm = await Swal.fire({
+      icon: 'question',
+      title: esNuevo ? '¿Registrar prospecto?' : '¿Guardar cambios?',
+      text: esNuevo
+        ? `Se creará el prospecto "${(form.nombre||'').trim()}".`
+        : `Se actualizarán los datos de "${selected?.nombre}".`,
+      showCancelButton: true,
+      confirmButtonText: esNuevo ? 'Sí, registrar' : 'Sí, guardar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#5C3819',
+      cancelButtonColor: '#6c757d'
+    })
+    if (!confirm.isConfirmed) return
+
+    // 3. Enviar al servidor
+    const data = { ...form, fecha: form.fecha || new Date().toISOString().split('T')[0] }
     try {
-      if (modal === 'crear') {
-        await fetch('http://localhost:5000/api/prospectos', {
+      let resp
+      if (esNuevo) {
+        resp = await fetch('http://localhost:5000/api/prospectos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
-        });
-      } else if (modal === 'editar' && selected?.id) {
-        await fetch(`http://localhost:5000/api/prospectos/${selected.id}`, {
+        })
+      } else if (selected?.id) {
+        resp = await fetch(`http://localhost:5000/api/prospectos/${selected.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
-        });
+        })
       }
-    } catch (err) { console.error('Error saving', err) }
 
-    cargar(); cerrar()
+      const json = resp ? await resp.json() : null
+
+      if (resp?.ok && json?.success !== false) {
+        // ✅ SweetAlert de ÉXITO
+        await Swal.fire({
+          icon: 'success',
+          title: esNuevo ? '¡Prospecto registrado!' : '¡Cambios guardados!',
+          text: esNuevo
+            ? `"${(form.nombre||'').trim()}" fue agregado correctamente.`
+            : `Los datos de "${selected?.nombre}" fueron actualizados.`,
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#5C3819',
+          timer: 3000,
+          timerProgressBar: true
+        })
+        cargar(); cerrar()
+      } else {
+        // ❌ SweetAlert de ERROR del servidor
+        Swal.fire({
+          icon: 'error',
+          title: 'Error al guardar',
+          text: json?.error || 'El servidor no pudo procesar la solicitud.',
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#d33'
+        })
+      }
+    } catch (err) {
+      console.error('Error guardando:', err)
+      // ❌ SweetAlert de ERROR de conexión
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: 'No se pudo conectar con el servidor. Verifica que esté corriendo.',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#6c757d'
+      })
+    }
   }
 
   const formatMXN=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0)
@@ -791,11 +925,37 @@ export default function Prospects(){
                         setForm(p2);setSelected(p);setTab('Datos Personales');setModal('editar');
                       }}>Editar</button>
                       <button className="btn btn-danger btn-sm" onClick={async () => {
-                        if (confirm('¿Eliminar este prospecto?')) {
-                          await fetch(`http://localhost:5000/api/prospectos/${p.id}`, { method: 'DELETE' });
-                          cargar();
-                        }
-                      }}>Eliminar</button>
+                          // 🗑️ SweetAlert de CONFIRMACIÓN de eliminación
+                          const result = await Swal.fire({
+                            icon: 'warning',
+                            title: '¿Eliminar prospecto?',
+                            html: `<b>${p.nombre}</b> será eliminado permanentemente junto con sus sucursales y contactos.`,
+                            showCancelButton: true,
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar',
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#6c757d'
+                          })
+                          if (!result.isConfirmed) return
+                          try {
+                            const resp = await fetch(`http://localhost:5000/api/prospectos/${p.id}`, { method: 'DELETE' })
+                            if (resp.ok) {
+                              Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: `"${p.nombre}" fue eliminado correctamente.`,
+                                timer: 2500,
+                                timerProgressBar: true,
+                                showConfirmButton: false
+                              })
+                              cargar()
+                            } else {
+                              Swal.fire({ icon:'error', title:'Error', text:'No se pudo eliminar el prospecto.' })
+                            }
+                          } catch {
+                            Swal.fire({ icon:'error', title:'Sin conexión', text:'Verifica que el servidor esté corriendo.' })
+                          }
+                        }}>Eliminar</button>
                     </div>
                   </td>
                 </tr>

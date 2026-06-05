@@ -40,6 +40,13 @@ body {
   font-size: 14px;
 }
 
+/* Bloquea scroll del fondo cuando hay un modal/swal abierto */
+body.modal-open,
+body.swal2-shown {
+  overflow: hidden !important;
+  touch-action: none;
+}
+
 /* ── Layout ── */
 .layout { display: flex; min-height: 100vh; }
 
@@ -338,20 +345,28 @@ textarea.form-input { resize: vertical; }
 
 /* ── Modal ── */
 .modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(63,40,26,0.45);
-  backdrop-filter: blur(2px);
-  display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(63,40,26,0.50);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
   padding: 20px;
+  overscroll-behavior: contain;   /* evita scroll del fondo */
+  overflow-y: auto;               /* permite scroll dentro del overlay si el contenido es largo */
 }
 .modal {
   background: var(--card);
   border-radius: 14px;
-  width: 100%; max-width: 580px;
+  width: 100%;
+  max-width: 580px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
+  position: relative;             /* necesario para z-index interno */
+  overscroll-behavior: contain;   /* no propaga scroll al body */
 }
 .modal-header {
   background: var(--brown-dark);
@@ -361,9 +376,14 @@ textarea.form-input { resize: vertical; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  user-select: none;              /* evita selección accidental al hacer clic */
+  cursor: default;
 }
 .modal-title { font-size: 16px; font-weight: 700; }
 .modal-body  { padding: 24px; }
+
+/* SweetAlert2 siempre encima de nuestro modal */
+.swal2-container { z-index: 99999 !important; }
 
 /* ── Search ── */
 .search-bar { display: flex; gap: 10px; margin-bottom: 16px; }
