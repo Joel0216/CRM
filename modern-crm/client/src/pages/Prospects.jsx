@@ -131,7 +131,7 @@ function TabDatos({form,onChange,errors}){
       <FSelect campo="tieneSucursales" label="Tienes sucursales" options={['-- Seleccionar --', 'Sí', 'No']} value={form.tieneSucursales} onChange={onChange} error={null}/>
       
       <FSelect campo="tipoPersona" label="Tipo de persona" options={['-- Seleccionar --', 'Física', 'Moral']} value={form.tipoPersona} onChange={onChange} error={null}/>
-      <FInput campo="email" label="Email" req type="email" value={form.email} onChange={onChange} error={errors.email} placeholder="correo@empresa.mx"/>
+      <FInput campo="email" label="Email" req type="text" value={form.email} onChange={onChange} error={errors.email} placeholder="correo@tuempresa.com"/>
 
       {/* Tipo de Inmueble */}
       <div className="form-group">

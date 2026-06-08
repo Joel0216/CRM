@@ -102,24 +102,25 @@ app.get('/api/prospectos', async (req, res) => {
   } catch(e){ console.error('GET prospectos:',e); res.status(500).json({error:e.message}); }
 });
 
-// ─── PROSPECTOS POST ──────────────────────────────────────────
+// ─── PROSPECTOS POST — usa SP_Prospectos_Insert ───────────────
 app.post('/api/prospectos', async (req, res) => {
   try {
     const {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, tipoPersona, tieneSucursales, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales, 
+      lat, lng, coordenadas_manuales,
       dias_disponibles, horario, ruta,
       foto_comprobante, foto_fachada, sucursales, contactos
     } = req.body;
 
+    // ── 1. Resolver / crear empresa ───────────────────────────────
     let empresaId = 1;
     if (nombre?.trim()) {
       const [r] = await pool.query(
         `INSERT INTO empresas (Nombre_Empresa, RFC) VALUES (?,?)
          ON DUPLICATE KEY UPDATE Nombre_Empresa=VALUES(Nombre_Empresa)`,
-        [nombre.trim(), rfc||null]
+        [nombre.trim(), rfc || null]
       );
       if (r.insertId) {
         empresaId = r.insertId;
@@ -131,53 +132,123 @@ app.post('/api/prospectos', async (req, res) => {
       }
     }
 
-    const [result] = await pool.query(`
-      INSERT INTO crm_prospectos
-        (Empresa_ID, Propietario_ID, Fuente_ID,
-         Nombre_Prospecto, Nombre_Comercial_Empresa, Correo, Telefono, Estatus,
-         Tipo_Inmueble, Tipo_Persona, Tiene_Sucursales, Notas,
-         Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado,
-         Lat, Lng, Coordenadas_Manuales,
-         Dias_Disponibles, Horario, Ruta,
-         Foto_Comprobante, Foto_Fachada)
-      VALUES (?,1,1,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+    // ── 2. CALL SP_Prospectos_Insert ──────────────────────────────
+    //    Los parámetros OUT se pasan como variables de sesión MySQL (@var)
+    await pool.query(
+      `CALL SP_Prospectos_Insert(
+         ?,  /* p_Empresa_ID               */
+         ?,  /* p_Propietario_ID           */
+         ?,  /* p_Fuente_ID                */
+         ?,  /* p_Nombre_Prospecto         */
+         ?,  /* p_Nombre_Comercial_Empresa */
+         ?,  /* p_Correo                   */
+         ?,  /* p_Telefono                 */
+         ?,  /* p_Tipo_Persona             */
+         ?,  /* p_Tiene_Sucursales         */
+         ?,  /* p_Estatus                  */
+         ?,  /* p_Tipo_Inmueble            */
+         ?,  /* p_Notas                    */
+         ?,  /* p_Calle                    */
+         ?,  /* p_Num_Ext                  */
+         ?,  /* p_Num_Int                  */
+         ?,  /* p_Colonia                  */
+         ?,  /* p_Municipio                */
+         ?,  /* p_CP                       */
+         ?,  /* p_Estado                   */
+         ?,  /* p_Dias_Disponibles         */
+         ?,  /* p_Horario                  */
+         ?,  /* p_Ruta                     */
+         @nuevo_id, @resultado, @mensaje
+       )`,
       [
         empresaId,
-        (contacto||nombre||'').trim(),
-        (nombre||contacto||'').trim(),
-        email||null, telefono||null, estatus||'Nuevo',
-        tipoInmueble||null, tipoPersona||'Moral', tieneSucursales||'No', notas||null,
-        calle||null, numExt||null, numInt||null,
-        colonia||null, municipio||null, cp||null, estado||null,
-        lat ? parseFloat(lat) : null,
-        lng ? parseFloat(lng) : null,
-        coordenadas_manuales ? 1 : 0,
-        dias_disponibles||null, horario||null, ruta||null,
-        foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null,
-        foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null
+        1,                                    // Propietario_ID default
+        1,                                    // Fuente_ID default
+        (contacto || nombre || '').trim(),    // Nombre_Prospecto
+        (nombre || contacto || '').trim(),    // Nombre_Comercial_Empresa
+        email     || null,
+        telefono  || null,
+        tipoPersona     || 'Moral',
+        tieneSucursales || 'No',
+        estatus         || 'Nuevo',
+        tipoInmueble    || null,
+        notas           || null,
+        calle     || null,
+        numExt    || null,
+        numInt    || null,
+        colonia   || null,
+        municipio || null,
+        cp        || null,
+        estado    || null,
+        dias_disponibles || null,
+        horario          || null,
+        ruta             || null
       ]
     );
-    const prospectoId = result.insertId;
-    if(tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
+
+    // ── 3. Leer parámetros OUT del SP ─────────────────────────────
+    const [[out]] = await pool.query(
+      'SELECT @nuevo_id as nuevo_id, @resultado as resultado, @mensaje as mensaje'
+    );
+
+    // ── 4. Evaluar resultado del SP ───────────────────────────────
+    if (out.resultado !== 0) {
+      // El SP rechazó la operación (validación interna)
+      return res.status(400).json({ success: false, error: out.mensaje });
+    }
+
+    const prospectoId = out.nuevo_id;
+
+    // ── 5. Guardar imágenes LONGBLOB (fuera del SP) ───────────────
+    if (foto_comprobante && foto_comprobante.length > 50) {
+      await pool.query(
+        `UPDATE crm_prospectos SET Foto_Comprobante=? WHERE Prospecto_ID=?`,
+        [Buffer.from(foto_comprobante, 'base64'), prospectoId]
+      );
+    }
+    if (foto_fachada && foto_fachada.length > 50) {
+      await pool.query(
+        `UPDATE crm_prospectos SET Foto_Fachada=? WHERE Prospecto_ID=?`,
+        [Buffer.from(foto_fachada, 'base64'), prospectoId]
+      );
+    }
+
+    // ── 6. Sucursales y contactos ─────────────────────────────────
+    if (tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
       const vals = sucursales.map(s => [
         prospectoId, s.nombre_sucursal, s.correo_electronico, s.telefono_sucursal, s.nombre_responsable,
-        s.calle||null, s.numExt||null, s.numInt||null, s.colonia||null, s.municipio||null, s.cp||null, s.estado||null,
+        s.calle || null, s.numExt || null, s.numInt || null, s.colonia || null,
+        s.municipio || null, s.cp || null, s.estado || null,
         s.lat ? parseFloat(s.lat) : null, s.lng ? parseFloat(s.lng) : null,
         s.foto_comprobante && s.foto_comprobante.length > 50 ? Buffer.from(s.foto_comprobante, 'base64') : null,
-        s.foto_fachada && s.foto_fachada.length > 50 ? Buffer.from(s.foto_fachada, 'base64') : null
+        s.foto_fachada     && s.foto_fachada.length     > 50 ? Buffer.from(s.foto_fachada,    'base64') : null
       ]);
-      await pool.query(`INSERT INTO crm_prospecto_sucursales (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable, Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada) VALUES ?`, [vals]);
+      await pool.query(
+        `INSERT INTO crm_prospecto_sucursales
+           (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable,
+            Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada)
+         VALUES ?`,
+        [vals]
+      );
     }
-    if(Array.isArray(contactos) && contactos.length > 0) {
+    if (Array.isArray(contactos) && contactos.length > 0) {
       const vals = contactos.map(c => [prospectoId, c.nombre_contacto, c.correo, c.representante_legal, c.telefono]);
-      await pool.query(`INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`, [vals]);
+      await pool.query(
+        `INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`,
+        [vals]
+      );
     }
 
-    res.json({ success:true, id: prospectoId });
-  } catch(e){ console.error('POST prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
+    res.json({ success: true, id: prospectoId, message: out.mensaje });
+
+  } catch (e) {
+    console.error('POST prospecto:', e);
+    res.status(500).json({ success: false, error: e.message, stack: e.stack });
+  }
 });
 
-// ─── PROSPECTOS PUT ───────────────────────────────────────────
+
+// ─── PROSPECTOS PUT — usa SP_Prospectos_Update ────────────────
 app.put('/api/prospectos/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -185,49 +256,70 @@ app.put('/api/prospectos/:id', async (req, res) => {
       nombre, rfc, contacto, telefono, email, estatus,
       tipoInmueble, tipoPersona, tieneSucursales, notas,
       calle, numExt, numInt, colonia, municipio, cp, estado,
-      lat, lng, coordenadas_manuales, 
+      lat, lng, coordenadas_manuales,
       dias_disponibles, horario, ruta,
       foto_comprobante, foto_fachada, sucursales, contactos
     } = req.body;
 
-    const updates = [
-      (contacto||nombre||'').trim(),
-      (nombre||contacto||'').trim(),
-      email||null, telefono||null, estatus||'Nuevo',
-      tipoInmueble||null, tipoPersona||'Moral', tieneSucursales||'No', notas||null,
-      calle||null, numExt||null, numInt||null,
-      colonia||null, municipio||null, cp||null, estado||null,
-      lat ? parseFloat(lat) : null,
-      lng ? parseFloat(lng) : null,
-      coordenadas_manuales ? 1 : 0,
-      dias_disponibles||null, horario||null, ruta||null
-    ];
+    // ── 1. CALL SP_Prospectos_Update ──────────────────────────────
+    await pool.query(
+      `CALL SP_Prospectos_Update(
+         ?,  /* p_Prospecto_ID             */
+         ?,  /* p_Nombre_Prospecto         */
+         ?,  /* p_Nombre_Comercial_Empresa */
+         ?,  /* p_Correo                   */
+         ?,  /* p_Telefono                 */
+         ?,  /* p_Tipo_Persona             */
+         ?,  /* p_Tiene_Sucursales         */
+         ?,  /* p_Estatus                  */
+         ?,  /* p_Tipo_Inmueble            */
+         ?,  /* p_Notas                    */
+         ?,  /* p_Calle                    */
+         ?,  /* p_Num_Ext                  */
+         ?,  /* p_Num_Int                  */
+         ?,  /* p_Colonia                  */
+         ?,  /* p_Municipio                */
+         ?,  /* p_CP                       */
+         ?,  /* p_Estado                   */
+         ?,  /* p_Dias_Disponibles         */
+         ?,  /* p_Horario                  */
+         ?,  /* p_Ruta                     */
+         @resultado, @mensaje
+       )`,
+      [
+        id,
+        (contacto || nombre || '').trim(),
+        (nombre   || contacto || '').trim(),
+        email     || null,
+        telefono  || null,
+        tipoPersona     || 'Moral',
+        tieneSucursales || 'No',
+        estatus         || 'Nuevo',
+        tipoInmueble    || null,
+        notas           || null,
+        calle     || null,
+        numExt    || null,
+        numInt    || null,
+        colonia   || null,
+        municipio || null,
+        cp        || null,
+        estado    || null,
+        dias_disponibles || null,
+        horario          || null,
+        ruta             || null
+      ]
+    );
 
-    let sql = `
-      UPDATE crm_prospectos SET
-        Nombre_Prospecto=?, Nombre_Comercial_Empresa=?,
-        Correo=?, Telefono=?, Estatus=?,
-        Tipo_Inmueble=?, Tipo_Persona=?, Tiene_Sucursales=?,
-        Notas=?,
-        Calle=?, Num_Ext=?, Num_Int=?,
-        Colonia=?, Municipio=?, CP=?, Estado=?,
-        Lat=?, Lng=?, Coordenadas_Manuales=?,
-        Dias_Disponibles=?, Horario=?, Ruta=?`;
+    // ── 2. Leer parámetros OUT ────────────────────────────────────
+    const [[out]] = await pool.query(
+      'SELECT @resultado as resultado, @mensaje as mensaje'
+    );
 
-    if (foto_comprobante !== undefined) {
-      sql += `, Foto_Comprobante=?`;
-      updates.push(foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null);
+    if (out.resultado !== 0) {
+      return res.status(400).json({ success: false, error: out.mensaje });
     }
-    if (foto_fachada !== undefined) {
-      sql += `, Foto_Fachada=?`;
-      updates.push(foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null);
-    }
 
-    sql += ` WHERE Prospecto_ID=?`;
-    updates.push(id);
-
-    await pool.query(sql, updates);
-
+    // ── 3. Actualizar empresa si el nombre cambió ─────────────────
     if (nombre?.trim()) {
       const [pr] = await pool.query(
         `SELECT Empresa_ID FROM crm_prospectos WHERE Prospecto_ID=?`, [id]
@@ -235,30 +327,60 @@ app.put('/api/prospectos/:id', async (req, res) => {
       if (pr.length > 0) {
         await pool.query(
           `UPDATE empresas SET Nombre_Empresa=?, RFC=? WHERE Empresa_ID=?`,
-          [nombre.trim(), rfc||null, pr[0].Empresa_ID]
+          [nombre.trim(), rfc || null, pr[0].Empresa_ID]
         );
       }
     }
 
+    // ── 4. Imágenes LONGBLOB ──────────────────────────────────────
+    if (foto_comprobante !== undefined) {
+      await pool.query(
+        `UPDATE crm_prospectos SET Foto_Comprobante=? WHERE Prospecto_ID=?`,
+        [foto_comprobante && foto_comprobante.length > 50 ? Buffer.from(foto_comprobante, 'base64') : null, id]
+      );
+    }
+    if (foto_fachada !== undefined) {
+      await pool.query(
+        `UPDATE crm_prospectos SET Foto_Fachada=? WHERE Prospecto_ID=?`,
+        [foto_fachada && foto_fachada.length > 50 ? Buffer.from(foto_fachada, 'base64') : null, id]
+      );
+    }
+
+    // ── 5. Sucursales y contactos (reemplazo completo) ────────────
     await pool.query(`DELETE FROM crm_prospecto_sucursales WHERE Prospecto_ID=?`, [id]);
-    if(tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
+    if (tieneSucursales === 'Sí' && Array.isArray(sucursales) && sucursales.length > 0) {
       const vals = sucursales.map(s => [
         id, s.nombre_sucursal, s.correo_electronico, s.telefono_sucursal, s.nombre_responsable,
-        s.calle||null, s.numExt||null, s.numInt||null, s.colonia||null, s.municipio||null, s.cp||null, s.estado||null,
+        s.calle || null, s.numExt || null, s.numInt || null, s.colonia || null,
+        s.municipio || null, s.cp || null, s.estado || null,
         s.lat ? parseFloat(s.lat) : null, s.lng ? parseFloat(s.lng) : null,
         s.foto_comprobante && s.foto_comprobante.length > 50 ? Buffer.from(s.foto_comprobante, 'base64') : null,
-        s.foto_fachada && s.foto_fachada.length > 50 ? Buffer.from(s.foto_fachada, 'base64') : null
+        s.foto_fachada     && s.foto_fachada.length     > 50 ? Buffer.from(s.foto_fachada,    'base64') : null
       ]);
-      await pool.query(`INSERT INTO crm_prospecto_sucursales (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable, Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada) VALUES ?`, [vals]);
+      await pool.query(
+        `INSERT INTO crm_prospecto_sucursales
+           (Prospecto_ID, Nombre_Sucursal, Correo_Electronico, Telefono_Sucursal, Nombre_Responsable,
+            Calle, Num_Ext, Num_Int, Colonia, Municipio, CP, Estado, Lat, Lng, Foto_Comprobante, Foto_Fachada)
+         VALUES ?`,
+        [vals]
+      );
     }
 
     await pool.query(`DELETE FROM crm_prospecto_contactos WHERE Prospecto_ID=?`, [id]);
-    if(Array.isArray(contactos) && contactos.length > 0) {
+    if (Array.isArray(contactos) && contactos.length > 0) {
       const vals = contactos.map(c => [id, c.nombre_contacto, c.correo, c.representante_legal, c.telefono]);
-      await pool.query(`INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`, [vals]);
+      await pool.query(
+        `INSERT INTO crm_prospecto_contactos (Prospecto_ID, Nombre_Contacto, Correo, Representante_Legal, Telefono) VALUES ?`,
+        [vals]
+      );
     }
-    res.json({ success:true });
-  } catch(e){ console.error('PUT prospecto:',e); res.status(500).json({error:e.message, stack:e.stack}); }
+
+    res.json({ success: true, message: out.mensaje });
+
+  } catch (e) {
+    console.error('PUT prospecto:', e);
+    res.status(500).json({ success: false, error: e.message, stack: e.stack });
+  }
 });
 
 // ─── PROSPECTOS FOTO (GET) ────────────────────────────────────

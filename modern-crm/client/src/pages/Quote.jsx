@@ -3,6 +3,7 @@ import { useSearchParams, useLocation } from 'react-router-dom'
 import { prospectos } from '../data'
 import Layout from './Layout'
 import MapView from './MapView'
+import Swal from 'sweetalert2'
 
 export default function Quote() {
   const [searchParams] = useSearchParams()
@@ -129,11 +130,45 @@ export default function Quote() {
 
   const formatMXN = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n)
 
+  const validarCotizacion = async (accion) => {
+    if (!prospecto) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Prospecto requerido',
+        text: `Selecciona un prospecto antes de ${accion}.`,
+        confirmButtonColor: '#6D4C41',
+        confirmButtonText: 'Entendido'
+      })
+      return false
+    }
+    if (items.length === 0) {
+      await Swal.fire({
+        icon: 'warning',
+        title: 'Sin servicios',
+        text: 'Agrega al menos un servicio a la cotización.',
+        confirmButtonColor: '#6D4C41',
+        confirmButtonText: 'Entendido'
+      })
+      return false
+    }
+    return true
+  }
+
   const handleGuardar = async () => {
-    if (!prospecto) return alert('Selecciona un prospecto')
-    if (items.length === 0) return alert('Agrega al menos un servicio')
-    
-    // Create Trato first (mock API call to create or get trato ID, assuming endpoint exists or backend logic handles it)
+    if (!(await validarCotizacion('enviar al cliente'))) return
+
+    const confirm = await Swal.fire({
+      icon: 'question',
+      title: '¿Enviar cotización al cliente?',
+      text: 'Se registrará la cotización y se actualizará el estatus del prospecto.',
+      showCancelButton: true,
+      confirmButtonColor: '#4A2C0A',
+      cancelButtonColor: '#757575',
+      confirmButtonText: 'Sí, enviar',
+      cancelButtonText: 'Cancelar'
+    })
+    if (!confirm.isConfirmed) return
+
     try {
       const tratoRes = await fetch('http://localhost:5000/api/tratos', {
         method: 'POST',
@@ -145,7 +180,7 @@ export default function Quote() {
           fase_id: 2
         })
       });
-      const tratoData = tratoRes.ok ? await tratoRes.json() : { id: Date.now() }; // Fallback for local mock
+      const tratoData = tratoRes.ok ? await tratoRes.json() : { id: Date.now() };
       const tratoId = tratoData.id || tratoData.insertId || Date.now();
 
       for (const item of items) {
@@ -164,19 +199,61 @@ export default function Quote() {
           })
         });
       }
-    } catch(e) { console.error("Error guardando servicios:", e) }
 
-    prospectos.actualizar(Number(prospecto), {
-      estatus: 'Cotizado',
-      monto: Math.round(total),
-      notas: `Cotización guardada. Domicilio: ${domicilio}. Días de servicio: ${diasServicio}. ${nota}`,
+      prospectos.actualizar(Number(prospecto), {
+        estatus: 'Cotizado',
+        monto: Math.round(total),
+        notas: `Cotización guardada. Domicilio: ${domicilio}. Días de servicio: ${diasServicio}. ${nota}`,
+      })
+      setGuardado(true)
+      setTimeout(() => setGuardado(false), 3000)
+      Swal.fire({
+        icon: 'success',
+        title: '¡Cotización enviada!',
+        text: 'La cotización fue registrada y el prospecto actualizado correctamente.',
+        timer: 2800,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+    } catch(e) {
+      console.error('Error guardando servicios:', e)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al enviar',
+        text: 'Ocurrió un problema al registrar la cotización. Intenta de nuevo.',
+        confirmButtonColor: '#C62828',
+        confirmButtonText: 'Cerrar'
+      })
+    }
+  }
+
+  const handleDescargarPDF = async () => {
+    if (!(await validarCotizacion('descargar el PDF'))) return
+    Swal.fire({
+      icon: 'info',
+      title: 'Generando PDF',
+      text: 'Se abrirá el diálogo de impresión para guardar la cotización como PDF.',
+      timer: 1800,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      toast: true,
+      position: 'top-end'
     })
-    setGuardado(true)
-    setTimeout(() => setGuardado(false), 3000)
+    setTimeout(() => window.print(), 500)
   }
 
   const handleGuardarBorrador = async () => {
-    if (!prospecto) return alert('Selecciona un prospecto')
+    if (!prospecto) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Prospecto requerido',
+        text: 'Selecciona un prospecto antes de guardar el borrador.',
+        confirmButtonColor: '#6D4C41',
+        confirmButtonText: 'Entendido'
+      })
+    }
     const datosBorrador = {
       items, subtotal, iva, total, nota, domicilio,
       lat, lng, diasServicio, horario, capacidad, ruta,
@@ -190,9 +267,25 @@ export default function Quote() {
       })
       setGuardado(true)
       setTimeout(() => setGuardado(false), 3000)
+      Swal.fire({
+        icon: 'success',
+        title: '¡Borrador guardado!',
+        text: 'El borrador de cotización se guardó correctamente.',
+        timer: 2500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
     } catch(e) {
       console.error(e)
-      alert('Error al guardar borrador')
+      Swal.fire({
+        icon: 'error',
+        title: 'Error al guardar',
+        text: 'Ocurrió un problema al guardar el borrador. Intenta de nuevo.',
+        confirmButtonColor: '#C62828',
+        confirmButtonText: 'Cerrar'
+      })
     }
   }
 
@@ -455,7 +548,7 @@ export default function Quote() {
 
           <div className="flex gap-2 mt-3" style={{ justifyContent: 'flex-end' }}>
             <button className="btn btn-ghost" onClick={handleGuardarBorrador}>Guardar borrador</button>
-            <button className="btn btn-ghost" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => { alert('Generando PDF...'); window.print() }}>Descargar PDF</button>
+            <button className="btn btn-ghost" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={handleDescargarPDF}>Descargar PDF</button>
             <button className="btn btn-primary" onClick={handleGuardar}>Enviar al cliente</button>
           </div>
         </div>

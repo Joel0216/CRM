@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { prospectos } from '../data'
 import Layout from './Layout'
 import MapView from './MapView'
+import Swal from 'sweetalert2'
 
 function Field({label,value}){
   return(
@@ -235,7 +236,16 @@ export default function ProspectoDetalle(){
               const data = await res.json()
               setBorradores(data)
               setVerBorradores(true)
-            } catch(e) { console.error(e); alert('Error al cargar borradores'); }
+            } catch(e) {
+              console.error(e)
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar los borradores.',
+                confirmButtonColor: '#C62828',
+                confirmButtonText: 'Cerrar'
+              })
+            }
           }}>
             Ver borradores de cotización
           </button>
@@ -272,9 +282,29 @@ export default function ProspectoDetalle(){
                           navigate('/cotizacion', { state: { prospecto_id: p.id, borrador: d } })
                         }}>Continuar cotización</button>
                         <button className="btn btn-sm btn-danger" onClick={async () => {
-                          if(confirm('¿Eliminar este borrador?')){
+                          const result = await Swal.fire({
+                            title: '¿Eliminar borrador?',
+                            text: 'Esta acción no se puede deshacer.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#C62828',
+                            cancelButtonColor: '#757575',
+                            confirmButtonText: 'Sí, eliminar',
+                            cancelButtonText: 'Cancelar'
+                          })
+                          if (result.isConfirmed) {
                             await fetch(`http://localhost:5000/api/borradores/${b.Borrador_ID}`, {method: 'DELETE'})
                             setBorradores(borradores.filter(x => x.Borrador_ID !== b.Borrador_ID))
+                            Swal.fire({
+                              icon: 'success',
+                              title: 'Borrador eliminado',
+                              text: 'El borrador fue eliminado correctamente.',
+                              timer: 2000,
+                              timerProgressBar: true,
+                              showConfirmButton: false,
+                              toast: true,
+                              position: 'top-end'
+                            })
                           }
                         }}>Eliminar</button>
                       </div>
